@@ -1,0 +1,79 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import logging
+from contextlib import asynccontextmanager
+
+from .core.config import settings
+from .core.database import engine, Base
+from .core.elastic import es_client
+from .services.text_processor import text_processor
+from .api.endpoints import upload, search, documents
+
+logging.basicConfig(
+    level=logging.INFO if not settings.DEBUG else logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting up...")
+    
+    async with engine.begin() as conn:
+        if settings.DEBUG:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+    
+    await es_client.initialize()
+    await text_processor.initialize()
+    
+    logger.info("Application startup complete")
+    
+    yield
+    
+    logger.info("Shutting down...")
+    
+    await engine.dispose()
+    await es_client.close()
+    
+    logger.info("Application shutdown complete")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+    lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(upload.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")
+
+
+@app.get("/")
+async def root():
+    return {
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "running"
+    }
+
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "elasticsearch": "connected"
+    }

@@ -1,0 +1,119 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: corpus-postgres
+    environment:
+      POSTGRES_USER: corpus
+      POSTGRES_PASSWORD: corpus_password
+      POSTGRES_DB: corpus_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - corpus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corpus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: corpus-elasticsearch
+    environment:
+      - node.name=corpus-node
+      - cluster.name=corpus-cluster
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - ingest.geoip.downloader.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - corpus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: corpus-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=kibana
+      - XPACK_SECURITY_ENABLED=false
+    ports:
+      - "5601:5601"
+    networks:
+      - corpus-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: corpus-backend
+    environment:
+      - DATABASE_URL=postgresql://corpus:corpus_password@postgres:5432/corpus_db
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=true
+      - UPLOAD_DIR=/uploads
+      - SPACY_MODEL=en_core_web_md
+      - BATCH_SIZE=1000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./uploads:/uploads
+    networks:
+      - corpus-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: corpus-frontend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - corpus-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+
+networks:
+  corpus-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  elastic_data:
+    driver: local
