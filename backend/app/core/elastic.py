@@ -230,29 +230,15 @@ class ElasticsearchClient:
         from_: int = 0,
         size: int = 50
     ) -> Dict[str, Any]:
-        """
-        Поиск фразы в корпусе с поддержкой нечёткого поиска для каждого слова.
-        
-        :param phrase: фраза для поиска
-        :param field: поле для поиска ("word" или "lemma")
-        :param slop: максимальное количество слов между искомыми
-        :param fuzziness: степень нечёткости (AUTO, 1, 2, или "0" для точного)
-        :param from_: смещение для пагинации
-        :param size: количество результатов
-        """
         words = phrase.split()
         if len(words) < 2:
             return await self.search_concordance(words[0], field, fuzziness != "0", from_, size)
         
         logger.info(f"Phrase search for {len(words)} words: {words} with slop={slop}, fuzziness={fuzziness}")
-        
-        # Для каждого слова получаем все вхождения с учётом нечёткости
         word_positions = {}
         
         for word_idx, word in enumerate(words):
-            # Формируем запрос с учётом fuzziness
             if fuzziness == "0":
-                # Точный поиск
                 if field == "lemma":
                     query = {"term": {field: word.lower()}}
                 else:
@@ -265,15 +251,14 @@ class ElasticsearchClient:
                         }
                     }
             else:
-                # Нечёткий поиск
                 query = {
                     "match": {
                         field: {
                             "query": word,
                             "fuzziness": fuzziness,
                             "operator": "and",
-                            "prefix_length": 2,  # Не менять первые 2 символа
-                            "max_expansions": 50  # Ограничить количество вариантов
+                            "prefix_length": 2,
+                            "max_expansions": 50
                         }
                     }
                 }
@@ -289,7 +274,6 @@ class ElasticsearchClient:
             hits = result.get("hits", {}).get("hits", [])
             logger.info(f"Word '{word}' found in {len(hits)} positions (fuzziness={fuzziness})")
             
-            # Логируем первые несколько результатов для отладки
             if hits and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"Sample hits for '{word}':")
                 for hit in hits[:3]:
@@ -299,7 +283,7 @@ class ElasticsearchClient:
             for hit in hits:
                 src = hit["_source"]
                 doc_id = src["doc_id"]
-                matched_word = src[field]  # Слово, которое реально нашлось
+                matched_word = src[field]
                 
                 if doc_id not in word_positions:
                     word_positions[doc_id] = {}
@@ -315,36 +299,29 @@ class ElasticsearchClient:
                     "metadata": src.get("metadata", {}),
                     "left_context": src.get("left_context", ""),
                     "right_context": src.get("right_context", ""),
-                    "matched_word": matched_word,  # Сохраняем, какое слово реально нашлось
-                    "original_query": word,  # Исходное слово из запроса
+                    "matched_word": matched_word,
+                    "original_query": word,
                     "_score": hit.get("_score", 1.0)
                 })
         
-        # Ищем последовательности с учётом slop
         matches = []
         
         for doc_id, word_dict in word_positions.items():
-            # Проверяем, что для этого документа есть все слова фразы
             if len(word_dict) < len(words):
                 continue
             
-            # Получаем позиции для каждого слова
             positions_lists = [sorted(word_dict[i], key=lambda x: x["position"]) for i in range(len(words))]
             
-            # Для каждого вхождения первого слова ищем остальные
             for first_word_pos in positions_lists[0]:
                 first_pos = first_word_pos["position"]
                 
-                # Ищем последовательность
                 sequence_tokens = [first_word_pos]
                 
-                # Рекурсивно ищем следующие слова
                 current_pos = first_pos
                 valid = True
                 
                 for i in range(1, len(words)):
                     found = False
-                    # Ищем следующее слово на позиции от current_pos+1 до current_pos+1+slop
                     min_pos = current_pos + 1
                     max_pos = current_pos + 1 + slop
                     
@@ -360,14 +337,12 @@ class ElasticsearchClient:
                         break
                 
                 if valid:
-                    # Вычисляем общий score (средний, но можно и другой метод)
                     scores = [t["_score"] for t in sequence_tokens if t["_score"] is not None]
                     if not scores:
                         avg_score = 1.0
                     else:
                         avg_score = sum(scores) / len(scores)
                     
-                    # Добавляем информацию о том, какие слова реально нашлись
                     matched_words = [t["word"] for t in sequence_tokens]
                     original_queries = [t["original_query"] for t in sequence_tokens]
                     
@@ -384,21 +359,16 @@ class ElasticsearchClient:
                         "original_queries": original_queries
                     })
         
-        # Сортируем по score (от большего к меньшему)
         matches.sort(key=lambda x: x["score"], reverse=True)
-        
         logger.info(f"Found {len(matches)} phrase matches")
         
-        # Пагинация
         total = len(matches)
         paginated_matches = matches[from_:from_ + size]
         
-        # Формируем результат
         hits_output = []
         for match in paginated_matches:
             tokens = match["tokens"]
             
-            # Берём контекст первого и последнего слова
             left_ctx = tokens[0].get("left_context", "")
             right_ctx = tokens[-1].get("right_context", "")
             
@@ -413,8 +383,8 @@ class ElasticsearchClient:
                     "words": [t["word"] for t in tokens],
                     "lemmas": [t["lemma"] for t in tokens],
                     "pos_tags": [t["pos"] for t in tokens],
-                    "matched_words": match["matched_words"],  # Что реально нашлось
-                    "original_queries": match["original_queries"],  # Что искали
+                    "matched_words": match["matched_words"],
+                    "original_queries": match["original_queries"],
                     "metadata": tokens[0]["metadata"],
                     "left_context": left_ctx,
                     "right_context": right_ctx,
