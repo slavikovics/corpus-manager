@@ -1,4 +1,4 @@
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch
 from typing import Dict, Any, List, Optional
 import logging
 from .config import settings
@@ -10,7 +10,7 @@ class ElasticsearchClient:
     def __init__(self):
         self.client = None
         self.index_name = settings.ELASTICSEARCH_INDEX
-        
+
     async def initialize(self):
         self.client = AsyncElasticsearch(
             [settings.ELASTICSEARCH_URL],
@@ -18,14 +18,14 @@ class ElasticsearchClient:
             max_retries=3,
             retry_on_timeout=True
         )
-        
+
         try:
             info = await self.client.info()
             logger.info(f"Connected to Elasticsearch: {info['version']['number']}")
         except Exception as e:
             logger.error(f"Failed to connect to Elasticsearch: {e}")
             raise
-        
+
         await self._create_index_if_not_exists()
 
     async def _create_index_if_not_exists(self):
@@ -48,18 +48,6 @@ class ElasticsearchClient:
                             "english_analyzer": {
                                 "type": "english",
                                 "stopwords": "_english_"
-                            },
-                            "ngram_analyzer": {
-                                "tokenizer": "ngram_tokenizer",
-                                "filter": ["lowercase"]
-                            }
-                        },
-                        "tokenizer": {
-                            "ngram_tokenizer": {
-                                "type": "ngram",
-                                "min_gram": 2,
-                                "max_gram": 4,
-                                "token_chars": ["letter", "digit"]
                             }
                         }
                     }
@@ -73,21 +61,13 @@ class ElasticsearchClient:
                             "type": "text",
                             "fields": {
                                 "keyword": {"type": "keyword", "ignore_above": 256},
-                                "stemmed": {"type": "text", "analyzer": "english"},
-                                "ngrams": {
-                                    "type": "text",
-                                    "analyzer": "ngram_analyzer"
-                                }
+                                "stemmed": {"type": "text", "analyzer": "english"}
                             }
                         },
                         "lemma": {
                             "type": "keyword",
                             "fields": {
-                                "text": {"type": "text", "analyzer": "english"},
-                                "ngrams": {
-                                    "type": "text",
-                                    "analyzer": "ngram_analyzer"
-                                }
+                                "text": {"type": "text", "analyzer": "english"}
                             }
                         },
                         "pos": {"type": "keyword"},
@@ -105,7 +85,14 @@ class ElasticsearchClient:
                                 "original_filename": {"type": "keyword"}
                             }
                         },
-                        "created_at": {"type": "date"}
+                        "created_at": {"type": "date"},
+                        "suggest": {
+                            "type": "completion",
+                            "fields": {
+                                "word": {"type": "completion"},
+                                "lemma": {"type": "completion"}
+                            }
+                        }
                     }
                 }
             }
@@ -117,11 +104,11 @@ class ElasticsearchClient:
             logger.info(f"Created index: {self.index_name}")
         except Exception as e:
             logger.error(f"Error creating index: {e}")
-    
+
     async def index_document_batch(self, actions: List[Dict[str, Any]]):
         if not actions:
             return
-        
+
         try:
             from elasticsearch.helpers import async_bulk
             success, failed = await async_bulk(
@@ -136,7 +123,7 @@ class ElasticsearchClient:
         except Exception as e:
             logger.error(f"Bulk indexing error: {e}")
             return 0, len(actions)
-    
+
     async def search_concordance(
         self,
         query: str,
@@ -158,7 +145,7 @@ class ElasticsearchClient:
             }
         else:
             search_query = {"term": {field: query.lower()}}
-        
+
         body = {
             "query": search_query,
             "from": from_,
@@ -183,7 +170,7 @@ class ElasticsearchClient:
             },
             "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"]
         }
-        
+
         try:
             result = await self.client.search(
                 index=self.index_name,
@@ -193,7 +180,7 @@ class ElasticsearchClient:
         except Exception as e:
             logger.error(f"Search error: {e}")
             return {"hits": {"hits": [], "total": {"value": 0}}}
-    
+
     async def get_word_statistics(
         self,
         lemma: str,
@@ -202,7 +189,7 @@ class ElasticsearchClient:
         filters = [{"term": {"lemma": lemma}}]
         if pos:
             filters.append({"term": {"pos": pos}})
-        
+
         body = {
             "query": {"bool": {"filter": filters}},
             "aggs": {
@@ -223,7 +210,7 @@ class ElasticsearchClient:
             },
             "size": 0
         }
-        
+
         try:
             result = await self.client.search(
                 index=self.index_name,
@@ -233,58 +220,216 @@ class ElasticsearchClient:
         except Exception as e:
             logger.error(f"Statistics error: {e}")
             return {}
-
-    async def search_ngram(
-            self,
-            query: str,
-            field: str = "word.ngrams",
-            from_: int = 0,
-            size: int = 50
+        
+    async def search_phrase(
+        self,
+        phrase: str,
+        field: str = "word",
+        slop: int = 2,
+        fuzziness: str = "AUTO",
+        from_: int = 0,
+        size: int = 50
     ) -> Dict[str, Any]:
-        body = {
-            "query": {
-                "match": {
-                    field: {
-                        "query": query,
-                        "operator": "and"
+        """
+        Поиск фразы в корпусе с поддержкой нечёткого поиска для каждого слова.
+        
+        :param phrase: фраза для поиска
+        :param field: поле для поиска ("word" или "lemma")
+        :param slop: максимальное количество слов между искомыми
+        :param fuzziness: степень нечёткости (AUTO, 1, 2, или "0" для точного)
+        :param from_: смещение для пагинации
+        :param size: количество результатов
+        """
+        words = phrase.split()
+        if len(words) < 2:
+            return await self.search_concordance(words[0], field, fuzziness != "0", from_, size)
+        
+        logger.info(f"Phrase search for {len(words)} words: {words} with slop={slop}, fuzziness={fuzziness}")
+        
+        # Для каждого слова получаем все вхождения с учётом нечёткости
+        word_positions = {}
+        
+        for word_idx, word in enumerate(words):
+            # Формируем запрос с учётом fuzziness
+            if fuzziness == "0":
+                # Точный поиск
+                if field == "lemma":
+                    query = {"term": {field: word.lower()}}
+                else:
+                    query = {
+                        "match": {
+                            field: {
+                                "query": word,
+                                "operator": "and"
+                            }
+                        }
+                    }
+            else:
+                # Нечёткий поиск
+                query = {
+                    "match": {
+                        field: {
+                            "query": word,
+                            "fuzziness": fuzziness,
+                            "operator": "and",
+                            "prefix_length": 2,  # Не менять первые 2 символа
+                            "max_expansions": 50  # Ограничить количество вариантов
+                        }
                     }
                 }
-            },
-            "from": from_,
-            "size": size,
-            "sort": [{"_score": "desc"}, {"doc_id": "asc"}],
-            "highlight": {
-                "fields": {
-                    "word": {
-                        "number_of_fragments": 0,
-                        "pre_tags": ["<mark>"],
-                        "post_tags": ["</mark>"]
-                    },
-                    "lemma.text": {
-                        "number_of_fragments": 0,
-                        "pre_tags": ["<mark>"],
-                        "post_tags": ["</mark>"]
-                    }
+            
+            body = {
+                "query": query,
+                "size": 10000,
+                "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"],
+                "sort": [{"doc_id": "asc"}, {"position": "asc"}]
+            }
+            
+            result = await self.client.search(index=self.index_name, body=body)
+            hits = result.get("hits", {}).get("hits", [])
+            logger.info(f"Word '{word}' found in {len(hits)} positions (fuzziness={fuzziness})")
+            
+            # Логируем первые несколько результатов для отладки
+            if hits and logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"Sample hits for '{word}':")
+                for hit in hits[:3]:
+                    src = hit["_source"]
+                    logger.debug(f"  doc={src['doc_id']}, pos={src['position']}, word='{src['word']}', score={hit['_score']}")
+            
+            for hit in hits:
+                src = hit["_source"]
+                doc_id = src["doc_id"]
+                matched_word = src[field]  # Слово, которое реально нашлось
+                
+                if doc_id not in word_positions:
+                    word_positions[doc_id] = {}
+                
+                if word_idx not in word_positions[doc_id]:
+                    word_positions[doc_id][word_idx] = []
+                
+                word_positions[doc_id][word_idx].append({
+                    "position": src["position"],
+                    "word": src["word"],
+                    "lemma": src.get("lemma", ""),
+                    "pos": src.get("pos", ""),
+                    "metadata": src.get("metadata", {}),
+                    "left_context": src.get("left_context", ""),
+                    "right_context": src.get("right_context", ""),
+                    "matched_word": matched_word,  # Сохраняем, какое слово реально нашлось
+                    "original_query": word,  # Исходное слово из запроса
+                    "_score": hit.get("_score", 1.0)
+                })
+        
+        # Ищем последовательности с учётом slop
+        matches = []
+        
+        for doc_id, word_dict in word_positions.items():
+            # Проверяем, что для этого документа есть все слова фразы
+            if len(word_dict) < len(words):
+                continue
+            
+            # Получаем позиции для каждого слова
+            positions_lists = [sorted(word_dict[i], key=lambda x: x["position"]) for i in range(len(words))]
+            
+            # Для каждого вхождения первого слова ищем остальные
+            for first_word_pos in positions_lists[0]:
+                first_pos = first_word_pos["position"]
+                
+                # Ищем последовательность
+                sequence_tokens = [first_word_pos]
+                
+                # Рекурсивно ищем следующие слова
+                current_pos = first_pos
+                valid = True
+                
+                for i in range(1, len(words)):
+                    found = False
+                    # Ищем следующее слово на позиции от current_pos+1 до current_pos+1+slop
+                    min_pos = current_pos + 1
+                    max_pos = current_pos + 1 + slop
+                    
+                    for candidate in positions_lists[i]:
+                        if min_pos <= candidate["position"] <= max_pos:
+                            sequence_tokens.append(candidate)
+                            current_pos = candidate["position"]
+                            found = True
+                            break
+                    
+                    if not found:
+                        valid = False
+                        break
+                
+                if valid:
+                    # Вычисляем общий score (средний, но можно и другой метод)
+                    scores = [t["_score"] for t in sequence_tokens if t["_score"] is not None]
+                    if not scores:
+                        avg_score = 1.0
+                    else:
+                        avg_score = sum(scores) / len(scores)
+                    
+                    # Добавляем информацию о том, какие слова реально нашлись
+                    matched_words = [t["word"] for t in sequence_tokens]
+                    original_queries = [t["original_query"] for t in sequence_tokens]
+                    
+                    logger.info(f"Found sequence in doc {doc_id}: positions={[t['position'] for t in sequence_tokens]}, "
+                            f"words={matched_words}, original={original_queries}")
+                    
+                    matches.append({
+                        "doc_id": doc_id,
+                        "tokens": sequence_tokens,
+                        "start_pos": first_pos,
+                        "end_pos": sequence_tokens[-1]["position"],
+                        "score": avg_score,
+                        "matched_words": matched_words,
+                        "original_queries": original_queries
+                    })
+        
+        # Сортируем по score (от большего к меньшему)
+        matches.sort(key=lambda x: x["score"], reverse=True)
+        
+        logger.info(f"Found {len(matches)} phrase matches")
+        
+        # Пагинация
+        total = len(matches)
+        paginated_matches = matches[from_:from_ + size]
+        
+        # Формируем результат
+        hits_output = []
+        for match in paginated_matches:
+            tokens = match["tokens"]
+            
+            # Берём контекст первого и последнего слова
+            left_ctx = tokens[0].get("left_context", "")
+            right_ctx = tokens[-1].get("right_context", "")
+            
+            hit = {
+                "_index": self.index_name,
+                "_id": f"{match['doc_id']}_{match['start_pos']}",
+                "_score": match["score"],
+                "_source": {
+                    "doc_id": match["doc_id"],
+                    "position_start": match["start_pos"],
+                    "position_end": match["end_pos"],
+                    "words": [t["word"] for t in tokens],
+                    "lemmas": [t["lemma"] for t in tokens],
+                    "pos_tags": [t["pos"] for t in tokens],
+                    "matched_words": match["matched_words"],  # Что реально нашлось
+                    "original_queries": match["original_queries"],  # Что искали
+                    "metadata": tokens[0]["metadata"],
+                    "left_context": left_ctx,
+                    "right_context": right_ctx,
+                    "full_phrase": " ".join([t["word"] for t in tokens])
                 }
-            },
-            "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"]
+            }
+            hits_output.append(hit)
+        
+        return {
+            "hits": {
+                "total": {"value": total},
+                "hits": hits_output
+            }
         }
 
-        try:
-            result = await self.client.search(
-                index=self.index_name,
-                body=body
-            )
-
-            total = result.get("hits", {}).get("total", {}).get("value", 0)
-            logger.info(f"NGram search for '{query}' found {total} results")
-
-            return result
-
-        except Exception as e:
-            logger.error(f"NGram search error: {e}")
-            return {"hits": {"hits": [], "total": {"value": 0}}}
-    
     async def close(self):
         if self.client:
             await self.client.close()

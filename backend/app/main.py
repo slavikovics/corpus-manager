@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import logging
 from contextlib import asynccontextmanager
 
@@ -22,9 +21,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up...")
     
     async with engine.begin() as conn:
-        if settings.DEBUG:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created (if they didn't exist)")
     
     await es_client.initialize()
     await text_processor.initialize()

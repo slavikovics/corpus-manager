@@ -11,14 +11,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - corpus-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U corpus"]
+      test: ["CMD-SHELL", "pg_isready -U corpus -d corpus_db || pg_isready -U corpus -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   elasticsearch:
@@ -66,6 +66,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: corpus-backend
+    user: "root"
     environment:
       - DATABASE_URL=postgresql://corpus:corpus_password@postgres:5432/corpus_db
       - ELASTICSEARCH_URL=http://elasticsearch:9200

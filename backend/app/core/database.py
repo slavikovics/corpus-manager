@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint
 import datetime
 from .config import settings
 
@@ -40,6 +40,9 @@ class Document(Base):
 
 class WordStatistics(Base):
     __tablename__ = "word_statistics"
+    __table_args__ = (
+        UniqueConstraint('lemma', 'pos', name='uq_word_statistics_lemma_pos'),
+    )
     
     id = Column(Integer, primary_key=True, index=True)
     lemma = Column(String(255), nullable=False, index=True)
