@@ -7,7 +7,7 @@ from .core.config import settings
 from .core.database import engine, Base
 from .core.elastic import es_client
 from .services.text_processor import text_processor
-from .api.endpoints import upload, search, documents
+from .api.endpoints import upload, search, documents, words
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -57,6 +57,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
+app.include_router(words.router, prefix="/api")
 
 
 @app.get("/")

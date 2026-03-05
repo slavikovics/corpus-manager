@@ -1,9 +1,10 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional, List
 
 from ...core.elastic import get_es, ElasticsearchClient
-from ...models.search import SearchResponse, SearchResult, WordStatisticsResponse
+from ...models.search import SearchResponse, SearchResult
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/search", tags=["search"])
 
 

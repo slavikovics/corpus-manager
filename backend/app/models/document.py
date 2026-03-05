@@ -9,15 +9,6 @@ class DocumentBase(BaseModel):
     year: Optional[int] = None
     language: str = "en"
 
-class DocumentCreate(DocumentBase):
-    source_file: str
-    file_type: str
-
-
-class DocumentUpdate(BaseModel):
-    title: Optional[str] = None
-    author: Optional[str] = None
-    year: Optional[int] = None
 
 class DocumentInDB(DocumentBase):
     id: int

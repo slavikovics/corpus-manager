@@ -1,20 +1,5 @@
 from pydantic import BaseModel
-from enum import Enum
 from typing import Optional, List, Dict, Any
-
-
-class SearchType(str, Enum):
-    EXACT = "exact"
-    FUZZY = "fuzzy"
-    NGRAM = "ngram"
-
-
-class SearchQuery(BaseModel):
-    query: str
-    search_type: SearchType = SearchType.NGRAM
-    field: str = "word.ngrams"
-    page: int = 1
-    page_size: int = 50
 
 
 class SearchResult(BaseModel):
@@ -42,11 +27,11 @@ class SearchResponse(BaseModel):
     fuzziness: Optional[str] = None
 
 
-
 class DocumentStat(BaseModel):
     doc_id: int
     frequency: int
     contexts: List[Dict[str, str]] = []
+
 
 class PosStat(BaseModel):
     pos: str
@@ -63,13 +48,6 @@ class WordStatisticsResponse(BaseModel):
     total_count: Optional[Dict[str, int]] = None
     by_document_agg: Optional[Dict[str, Any]] = None
     by_pos_agg: Optional[Dict[str, Any]] = None
-
-
-class ConcordanceResponse(BaseModel):
-    total: int
-    page: int
-    page_size: int
-    results: List[dict]
 
 
 class UploadResponse(BaseModel):

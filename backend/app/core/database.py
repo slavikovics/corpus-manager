@@ -43,18 +43,17 @@ class WordStatistics(Base):
     __table_args__ = (
         UniqueConstraint('lemma', 'pos', name='uq_word_statistics_lemma_pos'),
     )
-    
+
     id = Column(Integer, primary_key=True, index=True)
     lemma = Column(String(255), nullable=False, index=True)
     pos = Column(String(50), nullable=True)
     total_frequency = Column(Integer, default=0)
-    document_count = Column(Integer, default=0)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
 
 
 class DocumentWordStats(Base):
     __tablename__ = "document_word_stats"
-    
+
     doc_id = Column(Integer, primary_key=True)
     lemma = Column(String(255), primary_key=True)
     pos = Column(String(50), primary_key=True)

@@ -121,7 +121,6 @@ class CorpusBuilder:
                 'lemma': lemma,
                 'pos': pos,
                 'total_frequency': freq,
-                'document_count': 1,
                 'last_updated': datetime.utcnow()
             })
 
@@ -130,7 +129,6 @@ class CorpusBuilder:
             index_elements=['lemma', 'pos'],
             set_={
                 'total_frequency': WordStatistics.total_frequency + stmt.excluded.total_frequency,
-                'document_count': WordStatistics.document_count + 1,
                 'last_updated': datetime.utcnow()
             }
         )
