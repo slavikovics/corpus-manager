@@ -379,7 +379,6 @@ class CorpusBuilder:
                 values = []
                 for token in batch:
                     morph_value = token.get('morph')
-                    logger.debug(f"Token: {token}")
 
                     token_values = {
                         'doc_id': doc_id,

@@ -105,7 +105,7 @@ class Token(Base):
         UniqueConstraint('doc_id', 'position', name='uq_doc_position'),
     )
 
-    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), nullable=False, index=True)
+    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True, nullable=False, index=True)
     position = Column(Integer, primary_key=True, index=True)
     sentence_id = Column(Integer)
     word = Column(String(255))

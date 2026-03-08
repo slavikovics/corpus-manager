@@ -93,7 +93,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: development
     container_name: corpus-frontend
     environment:
       - VITE_API_URL=http://localhost:8000
