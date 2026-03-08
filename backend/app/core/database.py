@@ -3,20 +3,30 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint
 import datetime
 from .config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 db_url = str(settings.DATABASE_URL).replace("postgresql://", "postgresql+asyncpg://")
+
 engine = create_async_engine(
     db_url,
     echo=settings.DEBUG,
     future=True,
     pool_size=20,
-    max_overflow=10
+    max_overflow=10,
+    pool_pre_ping=True,
+    pool_timeout=30,
+    pool_recycle=3600,
+    pool_use_lifo=True
 )
 
 AsyncSessionLocal = sessionmaker(
     engine,
     class_=AsyncSession,
-    expire_on_commit=False
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False
 )
 
 Base = declarative_base()
@@ -24,7 +34,7 @@ db_metadata = MetaData()
 
 class Document(Base):
     __tablename__ = "documents"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(500), nullable=False)
     author = Column(String(255), nullable=True)
@@ -36,7 +46,6 @@ class Document(Base):
     word_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
-
 
 class WordStatistics(Base):
     __tablename__ = "word_statistics"
@@ -50,9 +59,11 @@ class WordStatistics(Base):
     total_frequency = Column(Integer, default=0)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
 
-
 class DocumentWordStats(Base):
     __tablename__ = "document_word_stats"
+    __table_args__ = (
+        UniqueConstraint('doc_id', 'lemma', 'pos', name='uq_doc_word_stats'),
+    )
 
     doc_id = Column(Integer, primary_key=True)
     lemma = Column(String(255), primary_key=True)
@@ -60,10 +71,29 @@ class DocumentWordStats(Base):
     frequency = Column(Integer, default=0)
     tfidf = Column(Float, nullable=True)
 
-
 async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    session = AsyncSessionLocal()
+    try:
+        logger.debug("Database session created")
+        yield session
+    except Exception as e:
+        logger.error(f"Database session error: {e}")
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
+        logger.debug("Database session closed")
+
+class DatabaseSession:
+    async def __aenter__(self) -> AsyncSession:
+        self.session = AsyncSessionLocal()
+        return self.session
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            await self.session.rollback()
+        await self.session.close()
+
+async def check_pool_status():
+    pool = engine.pool
+    logger.info(f"Pool status: size={pool.size()}, checked_in={pool.checkedin()}, overflow={pool.overflow()}")

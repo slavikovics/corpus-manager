@@ -1,12 +1,11 @@
 import os
+from typing import Dict
+
 import aiofiles
-from typing import BinaryIO, Optional
 import logging
-from pathlib import Path
 import PyPDF2
-from io import BytesIO
 from docx import Document
-import re
+from striprtf.striprtf import rtf_to_text
 
 logger = logging.getLogger(__name__)
 
@@ -42,22 +41,19 @@ class FileHandler:
             logger.error(f"Error reading DOCX {file_path}: {e}")
             raise
         return text
-    
+
     @staticmethod
     async def read_rtf(file_path: str) -> str:
         try:
             async with aiofiles.open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = await f.read()
-                text = re.sub(r'\\[a-z]+[\d-]*', ' ', content)
-                text = re.sub(r'[{}]', '', text)
-                text = re.sub(r'\s+', ' ', text)
-                return text
+                rtf_content = await f.read()
+                return rtf_to_text(rtf_content)
         except Exception as e:
             logger.error(f"Error reading RTF {file_path}: {e}")
             raise
     
     @classmethod
-    async def read_file(cls, file_path: str, file_type: str) -> str:
+    async def extract_text(cls, file_path: str, file_type: str) -> str:
         file_type = file_type.lower().lstrip('.')
         
         handlers = {
@@ -83,3 +79,18 @@ class FileHandler:
             await out_file.write(content)
         
         return file_path
+
+    @staticmethod
+    async def read_file(file_path: str, file_type: str, metadata: Dict) -> str:
+        logger.info(f"Reading file: {file_path}")
+        text = await FileHandler.extract_text(file_path, file_type)
+
+        if not text.strip():
+            raise ValueError("Empty file")
+
+        if not metadata.get('title'):
+            lines = text.strip().split('\n')
+            if lines:
+                metadata['title'] = lines[0][:200]
+
+        return text

@@ -36,8 +36,9 @@ class ElasticsearchClient:
         try:
             exists = await self.client.indices.exists(index=self.index_name)
             if exists:
-                logger.info(f"Index {self.index_name} already exists, deleting...")
-                await self.client.indices.delete(index=self.index_name)
+                return
+                #logger.info(f"Index {self.index_name} already exists, deleting...")
+                #await self.client.indices.delete(index=self.index_name)
 
             settings_body = {
                 "settings": {
