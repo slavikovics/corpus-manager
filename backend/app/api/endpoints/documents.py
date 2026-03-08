@@ -6,6 +6,7 @@ from typing import List
 from ...core.database import get_db, Document
 from ...core.elastic import get_es, ElasticsearchClient
 from ...models.document import DocumentResponse
+from ...services.corpus_builder import CorpusBuilder
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -60,8 +61,9 @@ async def delete_document(
         index=es.index_name,
         body={"query": {"term": {"doc_id": doc_id}}}
     )
-    
+
     await db.delete(document)
     await db.commit()
+    await CorpusBuilder.recalculate_global_stats(db)
     
     return {"message": f"Document {doc_id} deleted"}

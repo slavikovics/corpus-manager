@@ -7,7 +7,7 @@ from .core.config import settings
 from .core.database import engine, Base
 from .core.elastic import es_client
 from .services.text_processor import text_processor
-from .api.endpoints import upload, search, documents, words
+from .api.endpoints import upload, search, documents, lemma, word_form
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(fast_api_app):
     logger.info("Starting up...")
     
     async with engine.begin() as conn:
@@ -57,7 +57,8 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
-app.include_router(words.router, prefix="/api")
+app.include_router(lemma.router, prefix="/api")
+app.include_router(word_form.router, prefix="/api")
 
 
 @app.get("/")

@@ -1,12 +1,12 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint, Boolean, \
+    ForeignKey
 import datetime
 from .config import settings
 import logging
 
 logger = logging.getLogger(__name__)
-
 db_url = str(settings.DATABASE_URL).replace("postgresql://", "postgresql+asyncpg://")
 
 engine = create_async_engine(
@@ -32,6 +32,7 @@ AsyncSessionLocal = sessionmaker(
 Base = declarative_base()
 db_metadata = MetaData()
 
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -47,29 +48,77 @@ class Document(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
-class WordStatistics(Base):
-    __tablename__ = "word_statistics"
+
+class LemmaStats(Base):
+    __tablename__ = "lemma_stats"
     __table_args__ = (
-        UniqueConstraint('lemma', 'pos', name='uq_word_statistics_lemma_pos'),
+        UniqueConstraint('lemma', 'pos', name='uq_lemma_stats_lemma_pos'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
     lemma = Column(String(255), nullable=False, index=True)
     pos = Column(String(50), nullable=True)
     total_frequency = Column(Integer, default=0)
-    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.datetime.now)
 
-class DocumentWordStats(Base):
-    __tablename__ = "document_word_stats"
+
+class WordFormStats(Base):
+    __tablename__ = "word_form_stats"
     __table_args__ = (
-        UniqueConstraint('doc_id', 'lemma', 'pos', name='uq_doc_word_stats'),
+        UniqueConstraint('word', 'pos', name='uq_word_form_stats_lemma_pos'),
     )
 
-    doc_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
+    word = Column(String(255), nullable=False, index=True)
+    pos = Column(String(50), nullable=True)
+    total_frequency = Column(Integer, default=0)
+    last_updated = Column(DateTime, default=datetime.datetime.now)
+
+
+class DocumentLemmaStats(Base):
+    __tablename__ = "document_lemma_stats"
+    __table_args__ = (
+        UniqueConstraint('doc_id', 'lemma', 'pos', name='uq_doc_lemma_stats'),
+    )
+
+    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True)
     lemma = Column(String(255), primary_key=True)
     pos = Column(String(50), primary_key=True)
     frequency = Column(Integer, default=0)
-    tfidf = Column(Float, nullable=True)
+
+
+class DocumentWordFormStats(Base):
+    __tablename__ = "document_word_form_stats"
+    __table_args__ = (
+        UniqueConstraint('doc_id', 'word', 'pos', name='uq_doc_word_form_stats'),
+    )
+
+    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True)
+    word = Column(String(255), primary_key=True)
+    pos = Column(String(50), primary_key=True)
+    frequency = Column(Integer, default=0)
+
+
+class Token(Base):
+    __tablename__ = "tokens"
+    __table_args__ = (
+        UniqueConstraint('doc_id', 'position', name='uq_doc_position'),
+    )
+
+    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), nullable=False, index=True)
+    position = Column(Integer, primary_key=True, index=True)
+    sentence_id = Column(Integer)
+    word = Column(String(255))
+    lemma = Column(String(255))
+    pos = Column(String(50))
+    morph = Column(JSON, nullable=True)
+    dep = Column(String(255), nullable=True)
+    head = Column(String(255), nullable=True)
+    is_punctuation = Column(Boolean, nullable=True)
+    is_stopword = Column(Boolean, nullable=True)
+    left_context = Column(String(255), nullable=True)
+    right_context = Column(String(255), nullable=True)
+
 
 async def get_db() -> AsyncSession:
     session = AsyncSessionLocal()
@@ -84,6 +133,7 @@ async def get_db() -> AsyncSession:
         await session.close()
         logger.debug("Database session closed")
 
+
 class DatabaseSession:
     async def __aenter__(self) -> AsyncSession:
         self.session = AsyncSessionLocal()
@@ -93,6 +143,7 @@ class DatabaseSession:
         if exc_type is not None:
             await self.session.rollback()
         await self.session.close()
+
 
 async def check_pool_status():
     pool = engine.pool
