@@ -20,5 +20,13 @@ export default [
   {
     path: "/search",
     file: "routes/search.tsx",
+  },
+  {
+    path: "/tokens",
+    file: "routes/tokens.tsx",
+  },
+  {
+    path: "/pos-stats",
+    file: "routes/pos-stats.tsx",
   }
 ] satisfies RouteConfig;

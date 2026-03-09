@@ -132,3 +132,59 @@ export interface ValidationError {
 export interface HTTPValidationError {
   detail?: ValidationError[];
 }
+
+export interface TokenResponse {
+  doc_id: number;
+  sentence_id: number;
+  position: number;
+  word: string;
+  lemma: string;
+  pos: string | null;
+  tag: string | null;  
+  dep: string | null;  
+  ner: string | null;  
+  morph: Record<string, string> | null;  
+  is_punctuation: boolean;
+  is_stopword: boolean;
+  head_position: number | null;  
+}
+
+export interface TokenListResponse {
+  items: TokenResponse[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface TokenDetailResponse extends TokenResponse {
+  left_context: string;  
+  right_context: string;  
+  children_positions: number[];  
+  metadata: Record<string, any> | null;
+}
+
+export interface TokenPosAggregate {
+  pos: string;
+  count: number;
+  percentage: number;
+  unique_words: number;
+  examples: string[];  
+}
+
+export interface TokenPosListResponse {
+  items: TokenPosAggregate[];
+  total_tokens: number;
+  total_unique_words: number;
+}
+
+export interface DocumentTokenStats {
+  doc_id: number;
+  total_tokens: number;
+  total_sentences: number;
+  unique_words: number;
+  unique_lemmas: number;
+  avg_sentence_length: number;
+  pos_distribution: TokenPosAggregate[];
+  top_words: Array<{ word: string; frequency: number }>;
+  top_lemmas: Array<{ lemma: string; frequency: number }>;
+}

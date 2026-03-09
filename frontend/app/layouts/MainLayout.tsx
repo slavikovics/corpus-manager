@@ -4,7 +4,9 @@ import {
   FileText, 
   BookOpen, 
   Type, 
-  Search 
+  Search,
+  Hash,
+  PieChart
 } from "lucide-react";
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,6 +16,8 @@ const navigation = [
   { name: "Леммы", href: "/lemmas", icon: BookOpen },
   { name: "Словоформы", href: "/wordforms", icon: Type },
   { name: "Поиск", href: "/search", icon: Search },
+  { name: "Токены", href: "/tokens", icon: Hash },
+  { name: "Части речи", href: "/pos-stats", icon: PieChart },
 ];
 export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
