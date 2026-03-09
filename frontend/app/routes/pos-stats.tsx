@@ -17,11 +17,11 @@ const POS_COLORS = [
   "#ec4899", "#06b6d4", "#f97316", "#6b7280", "#84cc16",
   "#14b8a6", "#d946ef", "#64748b", "#f43f5e", "#0ea5e9",
 ];
+
 export default function PosStatsPage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<TokenPosAggregate[]>([]);
   const [totalTokens, setTotalTokens] = useState(0);
-  const [totalUniqueWords, setTotalUniqueWords] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   useEffect(() => {
@@ -33,8 +33,7 @@ export default function PosStatsPage() {
     try {
       const response = await tokensApi.getPosStats();
       setStats(response.items || []);
-      setTotalTokens(response.total_tokens || 0);
-      setTotalUniqueWords(response.total_unique_words || 0);
+      setTotalTokens(response.total || 0);
     } catch (err) {
       setError(err as Error);
       toast.error("Ошибка загрузки", {
@@ -46,13 +45,11 @@ export default function PosStatsPage() {
   };
   const pieData = stats.map(stat => ({
     name: stat.pos,
-    value: stat.count,
-    percentage: stat.percentage,
+    value: stat.count
   }));
   const barData = stats.map(stat => ({
     name: stat.pos,
     count: stat.count,
-    uniqueWords: stat.unique_words,
   }));
   const handlePosClick = (pos: string) => {
     navigate(`/tokens?pos=${pos}`);
@@ -62,8 +59,8 @@ export default function PosStatsPage() {
       <div className="container mx-auto py-10">
         <h1 className="text-3xl font-bold mb-6">Статистика по частям речи</h1>
         {}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {[1, 2, 3].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {[1, 2].map(i => (
             <Card key={i} className="p-6">
               <div className="flex items-center gap-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -84,7 +81,7 @@ export default function PosStatsPage() {
           <div className="p-4 space-y-4">
             <Skeleton className="h-10 w-full" />
             {[1, 2, 3, 4, 5].map(i => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
         </Card>
@@ -120,7 +117,7 @@ export default function PosStatsPage() {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Статистика по частям речи</h1>
       {}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-100 rounded-full">
@@ -129,17 +126,6 @@ export default function PosStatsPage() {
             <div>
               <p className="text-sm text-gray-500">Всего токенов</p>
               <p className="text-2xl font-bold">{totalTokens.toLocaleString()}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <BookOpen className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Уникальных слов</p>
-              <p className="text-2xl font-bold">{totalUniqueWords.toLocaleString()}</p>
             </div>
           </div>
         </Card>
@@ -204,7 +190,6 @@ export default function PosStatsPage() {
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="count" fill="#3b82f6" name="Количество токенов" />
-                  <Bar dataKey="uniqueWords" fill="#10b981" name="Уникальных слов" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -219,40 +204,13 @@ export default function PosStatsPage() {
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4">Часть речи</th>
                 <th className="text-left p-4">Количество</th>
-                <th className="text-left p-4">Процент</th>
-                <th className="text-left p-4">Уникальных слов</th>
-                <th className="text-left p-4">Примеры</th>
-                <th className="text-left p-4"></th>
               </tr>
             </thead>
             <tbody>
-              {stats.map((stat, index) => (
+              {stats.map((stat) => (
                 <tr key={stat.pos} className="border-b hover:bg-gray-50">
                   <td className="p-4 font-medium">{stat.pos}</td>
                   <td className="p-4">{stat.count?.toLocaleString() || '0'}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Progress value={stat.percentage || 0} className="w-20" />
-                      <span>{(stat.percentage || 0).toFixed(1)}%</span>
-                    </div>
-                  </td>
-                  <td className="p-4">{stat.unique_words?.toLocaleString() || '0'}</td>
-                  <td className="p-4">
-                    <div className="flex gap-1 flex-wrap">
-                      {(stat.examples || []).map((example, i) => (
-                        <Badge key={i} variant="outline">{example}</Badge>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handlePosClick(stat.pos)}
-                    >
-                      Просмотр токенов
-                    </Button>
-                  </td>
                 </tr>
               ))}
             </tbody>

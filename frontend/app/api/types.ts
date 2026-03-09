@@ -166,15 +166,11 @@ export interface TokenDetailResponse extends TokenResponse {
 export interface TokenPosAggregate {
   pos: string;
   count: number;
-  percentage: number;
-  unique_words: number;
-  examples: string[];  
 }
 
 export interface TokenPosListResponse {
   items: TokenPosAggregate[];
-  total_tokens: number;
-  total_unique_words: number;
+  total: number;
 }
 
 export interface DocumentTokenStats {
