@@ -155,9 +155,7 @@ class ElasticsearchClient:
             "highlight": {
                 "fields": {
                     "word": {
-                        "number_of_fragments": 0,
-                        "pre_tags": ["<mark>"],
-                        "post_tags": ["</mark>"]
+                        "number_of_fragments": 0
                     },
                     "left_context": {
                         "number_of_fragments": 1,

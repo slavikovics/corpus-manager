@@ -12,34 +12,30 @@ import {
 } from "app/components/ui/select";
 import { Card } from "app/components/ui/card";
 import { Badge } from "app/components/ui/badge";
-import { Search, X, Info } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { searchApi } from "app/api/search";
 import type { SearchResponse, SearchResult } from "app/api/types";
-const SEARCH_MODES = [
-  { value: "concordance", label: "Конкорданс" },
-  { value: "word", label: "Слово" },
-  { value: "phrase", label: "Фраза" },
-];
+
 const SEARCH_TYPES = [
   { value: "exact", label: "Точный" },
-  { value: "fuzzy", label: "Нечеткий (fuzzy)" },
+  { value: "fuzzy", label: "Нечеткий" },
 ];
+
 const SEARCH_FIELDS = [
   { value: "lemma", label: "Лемма" },
   { value: "word", label: "Словоформа" },
 ];
-const FUZZINESS_OPTIONS = [
-  { value: "AUTO", label: "Авто" },
-  { value: "0", label: "Отключено" },
-];
+
+const detectMode = (query: string): "concordance" | "phrase" => {
+  const words = query.trim().split(/\s+/).filter(w => w.length > 0);
+  return words.length > 1 ? "phrase" : "concordance";
+};
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("query") || "");
-  const [mode, setMode] = useState<"concordance" | "word" | "phrase">(
-    (searchParams.get("mode") as any) || "concordance"
-  );
   const [searchType, setSearchType] = useState<"exact" | "fuzzy">(
     (searchParams.get("search_type") as any) || "exact"
   );
@@ -49,15 +45,13 @@ export default function SearchPage() {
   const [slop, setSlop] = useState<number>(
     parseInt(searchParams.get("slop") || "0")
   );
-  const [fuzziness, setFuzziness] = useState<string>(
-    searchParams.get("fuzziness") || "AUTO"
-  );
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const mode = detectMode(query);
   const performSearch = useCallback(async () => {
     if (!query.trim()) {
       setResults([]);
@@ -75,7 +69,7 @@ export default function SearchPage() {
         page,
         page_size: pageSize,
         slop: mode === 'phrase' ? slop : undefined,
-        fuzziness: searchType === 'fuzzy' ? fuzziness : undefined,
+        fuzziness: searchType === 'fuzzy' ? 'AUTO' : undefined,
       });
       setResults(response.results);
       setTotalCount(response.total);
@@ -87,19 +81,17 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [query, mode, searchType, field, page, pageSize, slop, fuzziness]);
+  }, [query, mode, searchType, field, page, pageSize, slop]);
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("query", query);
-    params.set("mode", mode);
     params.set("search_type", searchType);
     params.set("field", field);
     if (slop > 0) params.set("slop", slop.toString());
-    if (fuzziness !== "AUTO") params.set("fuzziness", fuzziness);
     params.set("page", page.toString());
     params.set("page_size", pageSize.toString());
     setSearchParams(params);
-  }, [query, mode, searchType, field, slop, fuzziness, page, pageSize]);
+  }, [query, searchType, field, slop, page, pageSize]);
   useEffect(() => {
     performSearch();
   }, [performSearch]);
@@ -110,11 +102,9 @@ export default function SearchPage() {
   };
   const resetSearch = () => {
     setQuery("");
-    setMode("concordance");
     setSearchType("exact");
     setField("lemma");
     setSlop(0);
-    setFuzziness("AUTO");
     setPage(1);
   };
   const handlePageChange = (newPage: number) => {
@@ -164,26 +154,6 @@ export default function SearchPage() {
         </div>
       ),
     },
-    {
-      accessorKey: "score",
-      header: "Релевантность",
-      size: 100,
-      cell: ({ row }) => {
-        const score = row.original.score;
-        if (!score) return "-";
-        return (
-          <div className="flex items-center gap-2">
-            <div className="w-16 bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 rounded-full h-2"
-                style={{ width: `${Math.min(score * 100, 100)}%` }}
-              />
-            </div>
-            <span className="text-xs text-gray-600">{score.toFixed(2)}</span>
-          </div>
-        );
-      },
-    },
   ];
   return (
     <div className="container mx-auto py-10">
@@ -198,7 +168,7 @@ export default function SearchPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Введите слово, лемму или фразу..."
+                placeholder="Введите слово или фразу..."
                 className="w-full"
                 autoFocus
               />
@@ -209,28 +179,7 @@ export default function SearchPage() {
             </Button>
           </div>
           {}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {}
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Режим
-              </label>
-              <Select
-                value={mode}
-                onValueChange={(value: any) => setMode(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SEARCH_MODES.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {}
             <div>
               <label className="text-sm font-medium mb-1 block">
@@ -288,28 +237,6 @@ export default function SearchPage() {
                 />
               </div>
             )}
-            {searchType === 'fuzzy' && (
-              <div>
-                <label className="text-sm font-medium mb-1 block">
-                  Fuzziness
-                </label>
-                <Select
-                  value={fuzziness}
-                  onValueChange={setFuzziness}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FUZZINESS_OPTIONS.map((f) => (
-                      <SelectItem key={f.value} value={f.value}>
-                        {f.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
           {}
           {query && (
@@ -332,23 +259,11 @@ export default function SearchPage() {
       {query && (
         <div className="space-y-4">
           {}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Info className="h-4 w-4" />
-              {loading ? (
-                "Поиск..."
-              ) : (
-                <>
-                  Найдено {totalCount.toLocaleString()} результатов
-                  {results.length > 0 && (
-                    <Badge variant="secondary">
-                      Страница {page} из {Math.ceil(totalCount / pageSize)}
-                    </Badge>
-                  )}
-                </>
-              )}
+          {!loading && !error && (
+            <div className="text-sm text-gray-600">
+              Найдено {totalCount.toLocaleString()} результатов
             </div>
-          </div>
+          )}
           {}
           <DataTable
             columns={columns}
@@ -364,23 +279,6 @@ export default function SearchPage() {
             loading={loading}
             error={error}
           />
-          {}
-          {results.length > 0 && (
-            <Card className="p-4 bg-gray-50">
-              <h3 className="text-sm font-medium mb-2">Параметры поиска:</h3>
-              <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                <Badge variant="outline">Режим: {SEARCH_MODES.find(m => m.value === mode)?.label}</Badge>
-                <Badge variant="outline">Тип: {SEARCH_TYPES.find(t => t.value === searchType)?.label}</Badge>
-                <Badge variant="outline">Поле: {SEARCH_FIELDS.find(f => f.value === field)?.label}</Badge>
-                {mode === 'phrase' && slop > 0 && (
-                  <Badge variant="outline">Slop: {slop}</Badge>
-                )}
-                {searchType === 'fuzzy' && fuzziness !== 'AUTO' && (
-                  <Badge variant="outline">Fuzziness: {fuzziness}</Badge>
-                )}
-              </div>
-            </Card>
-          )}
         </div>
       )}
       {}
@@ -388,9 +286,6 @@ export default function SearchPage() {
         <Card className="p-12 text-center text-gray-500">
           <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <p className="text-lg mb-2">Введите запрос для поиска</p>
-          <p className="text-sm">
-            Можно искать по словам, леммам или фразам с различными параметрами
-          </p>
         </Card>
       )}
     </div>
