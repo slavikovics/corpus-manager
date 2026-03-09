@@ -7,7 +7,7 @@ from sqlalchemy import select, insert, update, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..core.database import Document, LemmaStats, WordFormStats, DocumentLemmaStats, DocumentWordFormStats
+from ..core.database import Document, LemmaStats, WordFormStats, DocumentLemmaStats, DocumentWordFormStats, ProcessingStatus
 from ..core.elastic import es_client
 from ..services.text_processor import text_processor
 from ..services.file_handlers import FileHandler
@@ -27,21 +27,29 @@ class CorpusBuilder:
             file_path: str,
             file_type: str,
             metadata: Dict[str, Any],
-            db: AsyncSession
+            db: AsyncSession,
+            doc_id: int
     ) -> Dict[str, Any]:
         start_time = datetime.now()
 
         try:
             logger.info(f"Processing document: {file_path}")
-            text = await FileHandler.read_file(file_path, file_type, metadata)
-            tokens = text_processor.process_text(text)
+            loop = asyncio.get_event_loop()
+
+            text = await loop.run_in_executor(
+                None,
+                lambda: FileHandler.read_file(file_path, file_type, metadata)
+            )
+
+            tokens = await loop.run_in_executor(
+                None,
+                lambda: text_processor.process_text(text)
+            )
 
             if not tokens:
                 raise ValueError("No tokens extracted from document")
 
             logger.info(f"Extracted {len(tokens)} tokens from document")
-
-            doc_id = await self._save_document_metadata(metadata, file_path, file_type, len(tokens), db)
 
             lemma_stats = self._calculate_stats(tokens, 'lemma')
             word_forms_stats = self._calculate_stats(tokens, 'word')
@@ -57,11 +65,20 @@ class CorpusBuilder:
             await db.commit()
             logger.info(f"Successfully saved document {doc_id} to database")
 
-            asyncio.create_task(
+            task = loop.create_task(
                 self._bulk_index_in_elasticsearch(doc_id, tokens, metadata)
             )
 
             processing_time = (datetime.now() - start_time).total_seconds()
+            await db.execute(
+                update(Document)
+                .where(Document.id == doc_id)
+                .values(processing_status=ProcessingStatus.COMPLETED)
+                .values(word_count=len(tokens))
+            )
+            await db.commit()
+            await db.flush()
+            logger.info(f"Successfully completed processing document {doc_id}")
 
             return {
                 "document_id": doc_id,
@@ -82,39 +99,6 @@ class CorpusBuilder:
             if db:
                 await db.rollback()
             raise
-
-    async def _save_document_metadata(
-            self,
-            metadata: Dict,
-            file_path: str,
-            file_type: str,
-            word_count: int,
-            db: AsyncSession
-    ) -> int:
-        logger.info("Saving document metadata to PostgreSQL")
-
-        stmt = (
-            insert(Document)
-            .values(
-                title=metadata.get('title', 'Untitled'),
-                author=metadata.get('author'),
-                year=metadata.get('year'),
-                language=metadata.get('language', 'en'),
-                source_file=file_path,
-                file_type=file_type,
-                meta_info=metadata,
-                word_count=word_count,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
-            .returning(Document.id)
-        )
-
-        result = await db.execute(stmt)
-        doc_id = result.scalar_one()
-
-        logger.info(f"Document saved with ID: {doc_id}")
-        return doc_id
 
     def _calculate_stats(self, tokens: List[Dict], key_field: str) -> List[Dict]:
         from collections import defaultdict

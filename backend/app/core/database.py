@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, Met
 import datetime
 from .config import settings
 import logging
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 db_url = str(settings.DATABASE_URL).replace("postgresql://", "postgresql+asyncpg://")
@@ -33,6 +34,13 @@ Base = declarative_base()
 db_metadata = MetaData()
 
 
+class ProcessingStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -45,6 +53,7 @@ class Document(Base):
     file_type = Column(String(50))
     meta_info = Column(JSON, nullable=True)
     word_count = Column(Integer, default=0)
+    processing_status = Column(String(50), default=ProcessingStatus.PENDING)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
