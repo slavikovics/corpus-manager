@@ -116,8 +116,8 @@ class Token(Base):
     head = Column(String(255), nullable=True)
     is_punctuation = Column(Boolean, nullable=True)
     is_stopword = Column(Boolean, nullable=True)
-    left_context = Column(String(255), nullable=True)
-    right_context = Column(String(255), nullable=True)
+    left_context = Column(String(510), nullable=True)
+    right_context = Column(String(510), nullable=True)
 
 
 async def get_db() -> AsyncSession:
