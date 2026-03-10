@@ -129,7 +129,6 @@ class ElasticsearchClient:
         self,
         query: str,
         field: str = "lemma",
-        context_size: int = 5,
         fuzzy: bool = False,
         from_: int = 0,
         size: int = 50
@@ -152,21 +151,6 @@ class ElasticsearchClient:
             "from": from_,
             "size": size,
             "sort": [{"doc_id": "asc"}, {"position": "asc"}],
-            "highlight": {
-                "fields": {
-                    "word": {
-                        "number_of_fragments": 0
-                    },
-                    "left_context": {
-                        "number_of_fragments": 1,
-                        "fragment_size": 50
-                    },
-                    "right_context": {
-                        "number_of_fragments": 1,
-                        "fragment_size": 50
-                    }
-                }
-            },
             "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"]
         }
 
