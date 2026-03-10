@@ -5,7 +5,7 @@ import PyPDF2
 from docx import Document
 from striprtf.striprtf import rtf_to_text
 from pathlib import Path
-from tika import parser
+import sharepoint2text
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +66,11 @@ class FileHandler:
     @staticmethod
     def read_doc(file_path: str) -> str:
         try:
-            parsed = parser.from_file(file_path)
-            if parsed and parsed.get('content'):
-                return parsed['content']
-            return ""
+            result = next(sharepoint2text.read_file(file_path, ignore_images=True))
+            text = result.get_full_text()
+            return text
         except Exception as e:
-            logger.error(f"Error reading DOC with Tika: {e}")
+            logger.error(f"Error reading DOC: {e}")
             return ""
 
     @staticmethod
