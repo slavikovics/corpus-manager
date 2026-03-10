@@ -51,7 +51,7 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
             <div className="space-y-6 pb-4">
               {/* Информация о документе */}
               {token.document && (
-                <Card className="p-6 mt-2 ml-2 mr-2 border-l-4 border-l-purple-500 bg-card border-border shadow-sm">
+                <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
                   <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-foreground">
                     <FileText className="h-6 w-6" />
                     Информация о документе
