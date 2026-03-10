@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from .document import DocumentInDB
 
 
 class TokenBasicResponse(BaseModel):
@@ -12,8 +13,7 @@ class TokenBasicResponse(BaseModel):
     is_punctuation: Optional[bool] = None
     is_stopword: Optional[bool] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TokenDetailResponse(TokenBasicResponse):
@@ -22,6 +22,7 @@ class TokenDetailResponse(TokenBasicResponse):
     head: Optional[str] = None
     left_context: Optional[str] = None
     right_context: Optional[str] = None
+    document: Optional[DocumentInDB] = None
 
 
 class TokenListResponse(BaseModel):

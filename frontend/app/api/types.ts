@@ -147,7 +147,7 @@ export interface TokenResponse {
   morph: Record<string, string> | null;  
   is_punctuation: boolean;
   is_stopword: boolean;
-  head_position: number | null;  
+  head: string | null;
 }
 
 export interface TokenListResponse {
@@ -162,6 +162,7 @@ export interface TokenDetailResponse extends TokenResponse {
   right_context: string;  
   children_positions: number[];  
   metadata: Record<string, any> | null;
+  document: DocumentResponse | null;
 }
 
 export interface TokenPosAggregate {

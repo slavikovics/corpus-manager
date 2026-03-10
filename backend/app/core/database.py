@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint, Boolean, \
     ForeignKey
 import datetime
@@ -56,6 +56,8 @@ class Document(Base):
     processing_status = Column(String(50), default=ProcessingStatus.PENDING)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    tokens = relationship("Token", back_populates="document", cascade="all, delete-orphan")
 
 
 class LemmaStats(Base):
@@ -127,6 +129,8 @@ class Token(Base):
     is_stopword = Column(Boolean, nullable=True)
     left_context = Column(String(510), nullable=True)
     right_context = Column(String(510), nullable=True)
+
+    document = relationship("Document", back_populates="tokens")
 
 
 async def get_db() -> AsyncSession:

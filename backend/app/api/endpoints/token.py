@@ -64,17 +64,23 @@ async def list_tokens(
 async def get_token_detail(
         doc_id: int,
         position: int,
-        db: AsyncSession = Depends(get_db)
+        db: AsyncSession = Depends(get_db),
+        include_doc_metadata: bool = Query(True, description="Include document metadata in response")
 ):
-    result = await db.execute(
-        select(Token).where(
-            and_(
-                Token.doc_id == doc_id,
-                Token.position == position
-            )
+    from sqlalchemy.orm import joinedload
+
+    query = select(Token).where(
+        and_(
+            Token.doc_id == doc_id,
+            Token.position == position
         )
     )
-    token = result.scalar_one_or_none()
+
+    if include_doc_metadata:
+        query = query.options(joinedload(Token.document))
+
+    result = await db.execute(query)
+    token = result.unique().scalar_one_or_none()
 
     if not token:
         raise HTTPException(

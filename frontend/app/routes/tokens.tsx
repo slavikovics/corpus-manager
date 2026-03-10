@@ -179,7 +179,7 @@ export default function TokensPage() {
             <Badge variant="outline" className="bg-gray-100">Punct</Badge>
           )}
           {row.original.is_stopword && (
-            <Badge variant="outline" className="bg-yellow-100">Stop</Badge>
+            <Badge variant="outline" className="bg-purple-200">Stop</Badge>
           )}
         </div>
       ),
