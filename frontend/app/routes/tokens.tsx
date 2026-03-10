@@ -161,16 +161,6 @@ export default function TokensPage() {
       },
     },
     {
-      accessorKey: "tag",
-      header: "Тэг",
-      cell: ({ row }) => row.original.tag || "-",
-    },
-    {
-      accessorKey: "dep",
-      header: "Зависимость",
-      cell: ({ row }) => row.original.dep || "-",
-    },
-    {
       id: "flags",
       header: "Флаги",
       cell: ({ row }) => (
