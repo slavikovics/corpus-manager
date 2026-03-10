@@ -5,13 +5,15 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useNavigate,
   useLocation
 } from "react-router";
+
 import type { Route } from "./+types/root";
 import { Toaster } from "app/components/ui/sonner";
+import { ThemeProvider } from "app/components/theme/theme-provider";
 import { MainLayout } from "app/layouts/MainLayout";
 import "./app.css";
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -24,16 +26,17 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru">
+    <html lang="ru" className="dark" style={{ colorScheme: 'dark' }}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="min-h-screen bg-background font-sans antialiased">
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -41,12 +44,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
+
 export default function App() {
   const location = useLocation();
-  const navigate = useNavigate();
+  
+  
   const showLayout = !location.pathname.startsWith('/login');
+  
   return (
-    <>
+    <ThemeProvider defaultTheme="dark" storageKey="corpus-manager-theme">
       {showLayout ? (
         <MainLayout>
           <Outlet />
@@ -54,14 +60,21 @@ export default function App() {
       ) : (
         <Outlet />
       )}
-      <Toaster />
-    </>
+      <Toaster 
+        position="top-right"
+        richColors
+        closeButton
+        theme="dark" 
+      />
+    </ThemeProvider>
   );
 }
+
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
+
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";
     details =
@@ -72,12 +85,13 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     details = error.message;
     stack = error.stack;
   }
+
   return (
     <main className="pt-16 p-4 container mx-auto">
       <h1 className="text-2xl font-bold mb-4">{message}</h1>
       <p className="text-gray-600 mb-4">{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto bg-gray-100 rounded">
+        <pre className="w-full p-4 overflow-x-auto bg-gray-100 dark:bg-gray-800 rounded">
           <code>{stack}</code>
         </pre>
       )}

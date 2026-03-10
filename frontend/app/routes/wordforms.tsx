@@ -16,6 +16,8 @@ import { DataTable } from "app/components/shared/DataTable";
 import { SearchBar } from "app/components/shared/SearchBar";
 import { wordFormsApi } from "app/api/wordforms";
 import type { WordFormStatsResponse } from "app/api/types";
+import { cn } from "app/lib/utils";
+
 const POS_TAGS = [
   { value: "ADJ", label: "Прилагательное" },
   { value: "ADP", label: "Предлог" },
@@ -36,6 +38,7 @@ const POS_TAGS = [
   { value: "VERB", label: "Глагол" },
   { value: "X", label: "Другое" },
 ];
+
 export default function WordFormsPage() {
   const navigate = useNavigate();
   const [wordForms, setWordForms] = useState<WordFormStatsResponse[]>([]);
@@ -47,6 +50,7 @@ export default function WordFormsPage() {
   const [minFrequency, setMinFrequency] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
   const fetchWordForms = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -69,25 +73,31 @@ export default function WordFormsPage() {
       setLoading(false);
     }
   }, [skip, limit, search, pos, minFrequency]);
+
   useEffect(() => {
     fetchWordForms();
   }, [fetchWordForms]);
+
   const resetFilters = () => {
     setSearch("");
     setPos(null);
     setMinFrequency(null);
-    setSkip(0); 
+    setSkip(0);
   };
+
   const handlePageChange = (page: number) => {
     setSkip((page - 1) * limit);
   };
+
   const handlePageSizeChange = (newLimit: number) => {
     setLimit(newLimit);
     setSkip(0);
   };
+
   const handleRowClick = (row: WordFormStatsResponse) => {
     navigate(`/search?query=${encodeURIComponent(row.word)}&field=word`);
   };
+
   const columns: ColumnDef<WordFormStatsResponse>[] = [
     {
       accessorKey: "id",
@@ -98,7 +108,7 @@ export default function WordFormsPage() {
       accessorKey: "word",
       header: "Словоформа",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.word}</span>
+        <span className="font-medium text-foreground">{row.original.word}</span>
       ),
     },
     {
@@ -121,22 +131,25 @@ export default function WordFormsPage() {
       accessorKey: "last_updated",
       header: "Обновлено",
       size: 120,
-      cell: ({ row }) => new Date(row.original.last_updated).toISOString().split('T')[0],
+      cell: ({ row }) => new Date(row.original.last_updated).toLocaleDateString(),
     },
   ];
+
   const hasActiveFilters = search || pos || minFrequency;
+
   return (
     <div className="container mx-auto py-10">
-      {}
+      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Словоформы</h1>
+        <h1 className="text-3xl font-bold text-foreground">Словоформы</h1>
       </div>
-      {}
-      <div className="bg-gray-50 p-4 rounded-lg mb-6 space-y-4">
+
+      {/* Фильтры */}
+      <div className="bg-muted/50 p-4 rounded-lg mb-6 space-y-4 border border-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {}
+          {/* Поиск по словоформе */}
           <div>
-            <label className="text-sm font-medium mb-1 block">
+            <label className="text-sm font-medium mb-1 block text-foreground">
               Поиск по словоформе
             </label>
             <SearchBar
@@ -146,9 +159,10 @@ export default function WordFormsPage() {
               delay={500}
             />
           </div>
-          {}
+
+          {/* Часть речи */}
           <div>
-            <label className="text-sm font-medium mb-1 block">
+            <label className="text-sm font-medium mb-1 block text-foreground">
               Часть речи
             </label>
             <Select
@@ -168,9 +182,10 @@ export default function WordFormsPage() {
               </SelectContent>
             </Select>
           </div>
-          {}
+
+          {/* Минимальная частота */}
           <div>
-            <label className="text-sm font-medium mb-1 block">
+            <label className="text-sm font-medium mb-1 block text-foreground">
               Минимальная частота
             </label>
             <Input
@@ -185,14 +200,15 @@ export default function WordFormsPage() {
             />
           </div>
         </div>
-        {}
+
+        {/* Кнопка сброса фильтров */}
         {hasActiveFilters && (
           <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
               onClick={resetFilters}
-              className="text-gray-500"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4 mr-2" />
               Сбросить фильтры
@@ -200,7 +216,8 @@ export default function WordFormsPage() {
           </div>
         )}
       </div>
-      {}
+
+      {/* Таблица словоформ */}
       <DataTable
         columns={columns}
         data={wordForms}
@@ -216,9 +233,10 @@ export default function WordFormsPage() {
         error={error}
         onRowClick={handleRowClick}
       />
-      {}
+
+      {/* Информация о количестве */}
       {!loading && !error && wordForms.length > 0 && (
-        <div className="mt-4 text-sm text-gray-500">
+        <div className="mt-4 text-sm text-muted-foreground">
           Показано {wordForms.length} из {totalCount.toLocaleString()} словоформ
         </div>
       )}

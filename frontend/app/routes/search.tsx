@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { searchApi } from "app/api/search";
 import type { SearchResponse, SearchResult } from "app/api/types";
+import { cn } from "app/lib/utils";
 
 const SEARCH_TYPES = [
   { value: "exact", label: "Точный" },
@@ -51,15 +52,19 @@ export default function SearchPage() {
   const [error, setError] = useState<Error | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+
   const mode = detectMode(query);
+
   const performSearch = useCallback(async () => {
     if (!query.trim()) {
       setResults([]);
       setTotalCount(0);
       return;
     }
+
     setLoading(true);
     setError(null);
+
     try {
       const response = await searchApi.search({
         query: query.trim(),
@@ -71,6 +76,7 @@ export default function SearchPage() {
         slop: mode === 'phrase' ? slop : undefined,
         fuzziness: searchType === 'fuzzy' ? 'AUTO' : undefined,
       });
+
       setResults(response.results);
       setTotalCount(response.total);
     } catch (err) {
@@ -82,6 +88,7 @@ export default function SearchPage() {
       setLoading(false);
     }
   }, [query, mode, searchType, field, page, pageSize, slop]);
+
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("query", query);
@@ -92,14 +99,17 @@ export default function SearchPage() {
     params.set("page_size", pageSize.toString());
     setSearchParams(params);
   }, [query, searchType, field, slop, page, pageSize]);
+
   useEffect(() => {
     performSearch();
   }, [performSearch]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1); 
+    setPage(1);
     performSearch();
   };
+
   const resetSearch = () => {
     setQuery("");
     setSearchType("exact");
@@ -107,13 +117,16 @@ export default function SearchPage() {
     setSlop(0);
     setPage(1);
   };
+
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
+
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setPage(1);
   };
+
   const columns: ColumnDef<SearchResult>[] = [
     {
       accessorKey: "doc_id",
@@ -124,7 +137,7 @@ export default function SearchPage() {
       accessorKey: "word",
       header: "Слово",
       cell: ({ row }) => (
-        <span className="font-medium text-blue-600">{row.original.word}</span>
+        <span className="font-medium text-primary">{row.original.word}</span>
       ),
     },
     {
@@ -141,28 +154,30 @@ export default function SearchPage() {
       id: "context",
       header: "Контекст",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 max-w-xl">
-          <span className="text-gray-500 text-sm">
+        <div className="flex items-center gap-2 max-w-xl flex-wrap">
+          <span className="text-muted-foreground text-sm">
             {row.original.left_context}
           </span>
-          <Badge variant="outline" className="bg-blue-50">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
             {row.original.word}
           </Badge>
-          <span className="text-gray-500 text-sm">
+          <span className="text-muted-foreground text-sm">
             {row.original.right_context}
           </span>
         </div>
       ),
     },
   ];
+
   return (
     <div className="container mx-auto py-10">
-      {}
-      <h1 className="text-3xl font-bold mb-6">Поиск и конкорданс</h1>
-      {}
-      <Card className="p-6 mb-8">
+      {/* Заголовок */}
+      <h1 className="text-3xl font-bold mb-6 text-foreground">Поиск и конкорданс</h1>
+
+      {/* Форма поиска */}
+      <Card className="p-6 mb-8 bg-card border-border">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {}
+          {/* Строка поиска */}
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
@@ -178,11 +193,12 @@ export default function SearchPage() {
               Поиск
             </Button>
           </div>
-          {}
+
+          {/* Параметры поиска */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {}
+            {/* Тип поиска */}
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label className="text-sm font-medium mb-1 block text-foreground">
                 Тип поиска
               </label>
               <Select
@@ -201,9 +217,10 @@ export default function SearchPage() {
                 </SelectContent>
               </Select>
             </div>
-            {}
+
+            {/* Поле */}
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label className="text-sm font-medium mb-1 block text-foreground">
                 Поле
               </label>
               <Select
@@ -222,10 +239,11 @@ export default function SearchPage() {
                 </SelectContent>
               </Select>
             </div>
-            {}
+
+            {/* Slop для фраз */}
             {mode === 'phrase' && (
               <div>
-                <label className="text-sm font-medium mb-1 block">
+                <label className="text-sm font-medium mb-1 block text-foreground">
                   Slop (расстояние)
                 </label>
                 <Input
@@ -238,7 +256,8 @@ export default function SearchPage() {
               </div>
             )}
           </div>
-          {}
+
+          {/* Кнопка сброса */}
           {query && (
             <div className="flex justify-end">
               <Button
@@ -246,7 +265,7 @@ export default function SearchPage() {
                 variant="ghost"
                 size="sm"
                 onClick={resetSearch}
-                className="text-gray-500"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4 mr-2" />
                 Сбросить параметры
@@ -255,16 +274,18 @@ export default function SearchPage() {
           )}
         </form>
       </Card>
-      {}
+
+      {/* Результаты поиска */}
       {query && (
         <div className="space-y-4">
-          {}
+          {/* Счетчик результатов */}
           {!loading && !error && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Найдено {totalCount.toLocaleString()} результатов
             </div>
           )}
-          {}
+
+          {/* Таблица результатов */}
           <DataTable
             columns={columns}
             data={results}
@@ -281,11 +302,12 @@ export default function SearchPage() {
           />
         </div>
       )}
-      {}
+
+      {/* Пустое состояние */}
       {!query && (
-        <Card className="p-12 text-center text-gray-500">
-          <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg mb-2">Введите запрос для поиска</p>
+        <Card className="p-12 text-center bg-card border-border">
+          <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+          <p className="text-lg mb-2 text-muted-foreground">Введите запрос для поиска</p>
         </Card>
       )}
     </div>

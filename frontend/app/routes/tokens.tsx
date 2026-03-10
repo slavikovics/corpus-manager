@@ -28,6 +28,8 @@ import { SearchBar } from "app/components/shared/SearchBar";
 import { tokensApi } from "app/api/tokens";
 import type { TokenResponse, TokenDetailResponse } from "app/api/types";
 import { TokenDetailDialog } from "app/components/tokens/TokenDetailDialog";
+import { cn } from "app/lib/utils";
+
 const POS_TAGS = [
   { value: "ADJ", label: "Прилагательное" },
   { value: "ADP", label: "Предлог" },
@@ -47,6 +49,7 @@ const POS_TAGS = [
   { value: "VERB", label: "Глагол" },
   { value: "X", label: "Другое" },
 ];
+
 export default function TokensPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -70,6 +73,7 @@ export default function TokensPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
   const fetchTokens = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -96,9 +100,11 @@ export default function TokensPage() {
       setLoading(false);
     }
   }, [skip, limit, docId, pos, searchWord, searchLemma, sentenceId, isPunctuation, isStopword]);
+
   useEffect(() => {
     fetchTokens();
   }, [fetchTokens]);
+
   const handleViewDetails = async (doc_id: number, position: number) => {
     setDetailLoading(true);
     try {
@@ -113,6 +119,7 @@ export default function TokensPage() {
       setDetailLoading(false);
     }
   };
+
   const resetFilters = () => {
     setDocId(null);
     setPos(null);
@@ -123,15 +130,19 @@ export default function TokensPage() {
     setIsStopword(null);
     setSkip(0);
   };
+
   const handlePageChange = (page: number) => {
     setSkip((page - 1) * limit);
   };
+
   const handlePageSizeChange = (newLimit: number) => {
     setLimit(newLimit);
     setSkip(0);
   };
+
   const hasActiveFilters = docId || pos || searchWord || searchLemma || 
                           sentenceId || isPunctuation !== null || isStopword !== null;
+
   const columns: ColumnDef<TokenResponse>[] = [
     {
       accessorKey: "position",
@@ -142,7 +153,7 @@ export default function TokensPage() {
       accessorKey: "word",
       header: "Слово",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.word}</span>
+        <span className="font-medium text-foreground">{row.original.word}</span>
       ),
     },
     {
@@ -166,10 +177,14 @@ export default function TokensPage() {
       cell: ({ row }) => (
         <div className="flex gap-1">
           {row.original.is_punctuation && (
-            <Badge variant="outline" className="bg-gray-100">Punct</Badge>
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900">
+              Punct
+            </Badge>
           )}
           {row.original.is_stopword && (
-            <Badge variant="outline" className="bg-purple-200">Stop</Badge>
+            <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900">
+              Stop
+            </Badge>
           )}
         </div>
       ),
@@ -186,26 +201,29 @@ export default function TokensPage() {
             e.stopPropagation();
             handleViewDetails(row.original.doc_id, row.original.position);
           }}
+          className="hover:bg-muted"
         >
           <Eye className="h-4 w-4" />
         </Button>
       ),
     },
   ];
+
   return (
     <div className="container mx-auto py-10">
-      {}
+      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Токены</h1>
+        <h1 className="text-3xl font-bold text-foreground">Токены</h1>
       </div>
-      {}
-      <Card className="p-4 mb-6">
+
+      {/* Фильтры */}
+      <Card className="p-4 mb-6 bg-card border-border">
         <div className="space-y-4">
-          {}
+          {/* Основные фильтры */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {}
+            {/* ID документа */}
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label className="text-sm font-medium mb-1 block text-foreground">
                 ID документа
               </label>
               <Input
@@ -216,9 +234,10 @@ export default function TokensPage() {
                 onChange={(e) => setDocId(e.target.value ? parseInt(e.target.value) : null)}
               />
             </div>
-            {}
+
+            {/* Часть речи */}
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label className="text-sm font-medium mb-1 block text-foreground">
                 Часть речи
               </label>
               <Select
@@ -238,9 +257,10 @@ export default function TokensPage() {
                 </SelectContent>
               </Select>
             </div>
-            {}
+
+            {/* Поиск по слову */}
             <div>
-              <label className="text-sm font-medium mb-1 block">
+              <label className="text-sm font-medium mb-1 block text-foreground">
                 Поиск по слову
               </label>
               <SearchBar
@@ -251,22 +271,24 @@ export default function TokensPage() {
               />
             </div>
           </div>
-          {}
+
+          {/* Кнопка расширенных фильтров */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="text-gray-500"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Filter className="h-4 w-4 mr-2" />
             {showAdvancedFilters ? "Скрыть расширенные фильтры" : "Показать расширенные фильтры"}
           </Button>
-          {}
+
+          {/* Расширенные фильтры */}
           {showAdvancedFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-              {}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border">
+              {/* Поиск по лемме */}
               <div>
-                <label className="text-sm font-medium mb-1 block">
+                <label className="text-sm font-medium mb-1 block text-foreground">
                   Поиск по лемме
                 </label>
                 <SearchBar
@@ -276,9 +298,10 @@ export default function TokensPage() {
                   delay={500}
                 />
               </div>
-              {}
+
+              {/* ID предложения */}
               <div>
-                <label className="text-sm font-medium mb-1 block">
+                <label className="text-sm font-medium mb-1 block text-foreground">
                   ID предложения
                 </label>
                 <Input
@@ -289,7 +312,8 @@ export default function TokensPage() {
                   onChange={(e) => setSentenceId(e.target.value ? parseInt(e.target.value) : null)}
                 />
               </div>
-              {}
+
+              {/* Чекбоксы */}
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -299,7 +323,7 @@ export default function TokensPage() {
                       setIsPunctuation(checked ? true : null)
                     }
                   />
-                  <Label htmlFor="punctuation">Только пунктуация</Label>
+                  <Label htmlFor="punctuation" className="text-foreground">Только пунктуация</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -309,19 +333,20 @@ export default function TokensPage() {
                       setIsStopword(checked ? true : null)
                     }
                   />
-                  <Label htmlFor="stopword">Только стоп-слова</Label>
+                  <Label htmlFor="stopword" className="text-foreground">Только стоп-слова</Label>
                 </div>
               </div>
             </div>
           )}
-          {}
+
+          {/* Кнопка сброса фильтров */}
           {hasActiveFilters && (
-            <div className="flex justify-end pt-4 border-t">
+            <div className="flex justify-end pt-4 border-t border-border">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="text-gray-500"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4 mr-2" />
                 Сбросить фильтры
@@ -330,7 +355,8 @@ export default function TokensPage() {
           )}
         </div>
       </Card>
-      {}
+
+      {/* Таблица токенов */}
       <DataTable
         columns={columns}
         data={tokens}
@@ -345,7 +371,8 @@ export default function TokensPage() {
         loading={loading}
         error={error}
       />
-      {}
+
+      {/* Диалог детальной информации */}
       <TokenDetailDialog
         token={selectedToken}
         open={detailDialogOpen}

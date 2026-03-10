@@ -26,34 +26,34 @@ import { UploadDocumentForm } from "app/components/documents/UploadDocumentForm"
 import { documentsApi } from "app/api/documents";
 import type { DocumentResponse } from "app/api/types";
 import { Spinner } from "app/components/ui/spinner";
-
+import { cn } from "app/lib/utils";
 
 function ProcessingStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "completed":
       return (
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900">
           <CheckCircle className="h-3 w-3 mr-1" />
           Готов
         </Badge>
       );
     case "processing":
       return (
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900">
           <Spinner width={12} className="mr-1" />
           Обрабатывается
         </Badge>
       );
     case "pending":
       return (
-        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900">
           <Clock className="h-3 w-3 mr-1" />
           В очереди
         </Badge>
       );
     case "failed":
       return (
-        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+        <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900">
           <XCircle className="h-3 w-3 mr-1" />
           Ошибка
         </Badge>
@@ -178,7 +178,7 @@ export default function DocumentsPage() {
     {
       accessorKey: "created_at",
       header: "Создан",
-      cell: ({ row }) => new Date(row.original.created_at).toISOString().split('T')[0],
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
     },
     {
       id: "actions",
@@ -199,8 +199,12 @@ export default function DocumentsPage() {
             }}
             disabled={isProcessing}
             title={isProcessing ? "Нельзя удалить во время обработки" : "Удалить документ"}
+            className="hover:bg-destructive/10"
           >
-            <Trash2 className={`h-4 w-4 ${isProcessing ? 'text-gray-300' : 'text-red-500'}`} />
+            <Trash2 className={cn(
+              "h-4 w-4",
+              isProcessing ? "text-muted-foreground/30" : "text-destructive"
+            )} />
           </Button>
         );
       },
@@ -209,9 +213,9 @@ export default function DocumentsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {}
+      {/* Заголовок и кнопка загрузки */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Документы</h1>
+        <h1 className="text-3xl font-bold text-foreground">Документы</h1>
         
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogTrigger asChild>
@@ -242,28 +246,28 @@ export default function DocumentsPage() {
         </Dialog>
       </div>
 
-      {}
-      <div className="bg-gray-50 p-3 rounded-lg mb-6 flex items-center gap-4 text-sm">
-        <span className="text-gray-600 font-medium">Статусы:</span>
+      {/* Легенда статусов */}
+      <div className="bg-muted/50 p-3 rounded-lg mb-6 flex flex-wrap items-center gap-4 text-sm border border-border">
+        <span className="text-muted-foreground font-medium">Статусы:</span>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-green-50">Готов</Badge>
-          <span className="text-gray-500">- обработан</span>
+          <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900">Готов</Badge>
+          <span className="text-muted-foreground">- обработан</span>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-blue-50">Обрабатывается</Badge>
-          <span className="text-gray-500">- в процессе</span>
+          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900">Обрабатывается</Badge>
+          <span className="text-muted-foreground">- в процессе</span>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-yellow-50">В очереди</Badge>
-          <span className="text-gray-500">- ожидает</span>
+          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900">В очереди</Badge>
+          <span className="text-muted-foreground">- ожидает</span>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-red-50">Ошибка</Badge>
-          <span className="text-gray-500">- не удалось обработать</span>
+          <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900">Ошибка</Badge>
+          <span className="text-muted-foreground">- не удалось обработать</span>
         </div>
       </div>
 
-      {}
+      {/* Таблица документов */}
       <DataTable
         columns={columns}
         data={documents}
@@ -279,7 +283,7 @@ export default function DocumentsPage() {
         error={error}
       />
 
-      {}
+      {/* Диалог подтверждения удаления */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -290,7 +294,7 @@ export default function DocumentsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Удалить
             </AlertDialogAction>
           </AlertDialogFooter>
