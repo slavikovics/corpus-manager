@@ -5,6 +5,7 @@ export interface DocumentResponse {
   language: string;
   id: number;
   source_file: string;
+  processing_status: string;
   file_type: string;
   word_count: number;
   created_at: string;  

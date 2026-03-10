@@ -14,6 +14,7 @@ class DocumentInDB(DocumentBase):
     id: int
     source_file: str
     file_type: str
+    processing_status: str
     word_count: int
     created_at: datetime
     updated_at: datetime

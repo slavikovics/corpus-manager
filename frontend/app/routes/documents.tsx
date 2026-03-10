@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "app/components/ui/button";
-import { Upload, Trash2 } from "lucide-react";
+import { Upload, Trash2, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,11 +19,55 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "app/components/ui/alert-dialog";
+import { Badge } from "app/components/ui/badge";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { UploadDocumentForm } from "app/components/documents/UploadDocumentForm";
 import { documentsApi } from "app/api/documents";
 import type { DocumentResponse } from "app/api/types";
+import { Spinner } from "app/components/ui/spinner";
+
+
+function ProcessingStatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case "completed":
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Готов
+        </Badge>
+      );
+    case "processing":
+      return (
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Spinner width={12} className="mr-1" />
+          Обрабатывается
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Clock className="h-3 w-3 mr-1" />
+          В очереди
+        </Badge>
+      );
+    case "failed":
+      return (
+        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <XCircle className="h-3 w-3 mr-1" />
+          Ошибка
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          {status}
+        </Badge>
+      );
+  }
+}
+
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -34,12 +78,15 @@ export default function DocumentsPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
+
+  
   const fetchDocuments = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await documentsApi.getDocuments(skip, limit);
       setDocuments(data);
+      
       setTotalCount(data.length < limit ? skip + data.length : skip + limit + 1);
     } catch (err) {
       setError(err as Error);
@@ -50,11 +97,15 @@ export default function DocumentsPage() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchDocuments();
   }, [skip, limit]);
+
+  
   const handleDelete = async () => {
     if (!documentToDelete) return;
+    
     try {
       await documentsApi.deleteDocument(documentToDelete);
       toast.success("Документ удален", {
@@ -70,13 +121,18 @@ export default function DocumentsPage() {
       setDocumentToDelete(null);
     }
   };
+
+  
   const handlePageChange = (page: number) => {
     setSkip((page - 1) * limit);
   };
+
   const handlePageSizeChange = (newLimit: number) => {
     setLimit(newLimit);
-    setSkip(0); 
+    setSkip(0);
   };
+
+  
   const columns: ColumnDef<DocumentResponse>[] = [
     {
       accessorKey: "id",
@@ -111,7 +167,13 @@ export default function DocumentsPage() {
       accessorKey: "word_count",
       header: "Слов",
       size: 80,
-      cell: ({ row }) => row.original.word_count.toLocaleString(),
+      cell: ({ row }) => row.original.word_count?.toLocaleString() || "-",
+    },
+    {
+      accessorKey: "processing_status",
+      header: "Статус",
+      size: 120,
+      cell: ({ row }) => <ProcessingStatusBadge status={row.original.processing_status} />,
     },
     {
       accessorKey: "created_at",
@@ -122,26 +184,35 @@ export default function DocumentsPage() {
       id: "actions",
       header: "Действия",
       size: 80,
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation(); 
-            setDocumentToDelete(row.original.id);
-            setDeleteDialogOpen(true);
-          }}
-        >
-          <Trash2 className="h-4 w-4 text-red-500" />
-        </Button>
-      ),
+      cell: ({ row }) => {
+        
+        const isProcessing = row.original.processing_status !== "completed";
+        
+        return (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDocumentToDelete(row.original.id);
+              setDeleteDialogOpen(true);
+            }}
+            disabled={isProcessing}
+            title={isProcessing ? "Нельзя удалить во время обработки" : "Удалить документ"}
+          >
+            <Trash2 className={`h-4 w-4 ${isProcessing ? 'text-gray-300' : 'text-red-500'}`} />
+          </Button>
+        );
+      },
     },
   ];
+
   return (
     <div className="container mx-auto py-10">
       {}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Документы</h1>
+        
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -158,7 +229,7 @@ export default function DocumentsPage() {
                 setUploadDialogOpen(false);
                 fetchDocuments();
                 toast.success("Успешно", {
-                  description: "Документ загружен и обрабатывается",
+                  description: "Документ загружен и поставлен в очередь на обработку",
                 });
               }}
               onError={(error) => {
@@ -170,6 +241,28 @@ export default function DocumentsPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {}
+      <div className="bg-gray-50 p-3 rounded-lg mb-6 flex items-center gap-4 text-sm">
+        <span className="text-gray-600 font-medium">Статусы:</span>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-green-50">Готов</Badge>
+          <span className="text-gray-500">- обработан</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-blue-50">Обрабатывается</Badge>
+          <span className="text-gray-500">- в процессе</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-yellow-50">В очереди</Badge>
+          <span className="text-gray-500">- ожидает</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-red-50">Ошибка</Badge>
+          <span className="text-gray-500">- не удалось обработать</span>
+        </div>
+      </div>
+
       {}
       <DataTable
         columns={columns}
@@ -185,6 +278,7 @@ export default function DocumentsPage() {
         loading={loading}
         error={error}
       />
+
       {}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
