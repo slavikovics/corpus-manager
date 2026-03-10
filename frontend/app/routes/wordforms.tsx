@@ -229,7 +229,7 @@ export default function WordFormsPage() {
           onPageChange: handlePageChange,
           onPageSizeChange: handlePageSizeChange,
         }}
-        loading={loading}
+        loading={false}
         error={error}
         onRowClick={handleRowClick}
       />

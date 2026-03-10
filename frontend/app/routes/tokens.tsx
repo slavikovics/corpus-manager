@@ -368,7 +368,7 @@ export default function TokensPage() {
           onPageChange: handlePageChange,
           onPageSizeChange: handlePageSizeChange,
         }}
-        loading={loading}
+        loading={false}
         error={error}
       />
 

@@ -78,7 +78,6 @@ export default function DocumentsPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
-
   
   const fetchDocuments = async () => {
     setLoading(true);
@@ -100,7 +99,15 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     fetchDocuments();
-  }, [skip, limit]);
+    
+    // Устанавливаем интервал для автоматической перезагрузки каждые 3 секунды
+    const intervalId = setInterval(() => {
+      fetchDocuments();
+    }, 3000);
+    
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
+  }, [skip, limit]); // Зависимости остаются те же
 
   
   const handleDelete = async () => {
@@ -279,7 +286,7 @@ export default function DocumentsPage() {
           onPageChange: handlePageChange,
           onPageSizeChange: handlePageSizeChange,
         }}
-        loading={loading}
+        loading={false}
         error={error}
       />
 
