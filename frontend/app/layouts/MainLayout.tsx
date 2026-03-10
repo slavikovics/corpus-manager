@@ -7,6 +7,7 @@ import {
   Search,
   Hash,
   PieChart,
+  HelpCircle
 } from "lucide-react";
 import { ThemeToggle } from "app/components/theme/theme-toggle";
 
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Поиск", href: "/search", icon: Search },
   { name: "Токены", href: "/tokens", icon: Hash },
   { name: "Части речи", href: "/pos-stats", icon: PieChart },
+  { name: "Справка", href: "/help", icon: HelpCircle },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -28,13 +30,13 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {}
-      <div className="w-64 bg-card border-r border-border flex flex-col">
+      {/* Фиксированная боковая панель */}
+      <div className="w-64 fixed inset-y-0 left-0 bg-card border-r border-border flex flex-col">
         <div className="p-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">Corpus Manager</h1>
           <ThemeToggle />
         </div>
-        <nav className="flex-1 space-y-1 px-3">
+        <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href || 
@@ -60,8 +62,8 @@ export function MainLayout({ children }: MainLayoutProps) {
         </nav>
       </div>
 
-      {}
-      <div className="flex-1 bg-background overflow-auto">
+      {/* Основной контент с отступом для фиксированной панели */}
+      <div className="flex-1 ml-64 bg-background min-h-screen">
         {children}
       </div>
     </div>

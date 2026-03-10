@@ -28,5 +28,9 @@ export default [
   {
     path: "/pos-stats",
     file: "routes/pos-stats.tsx",
+  },
+  {
+    path: "/help",
+    file: "routes/help.tsx",
   }
 ] satisfies RouteConfig;
