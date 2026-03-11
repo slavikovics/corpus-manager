@@ -28,7 +28,6 @@ export function ThemeProvider({
 
   const [theme, setTheme] = useState<Theme>(defaultTheme);
 
-  // читаем localStorage только на клиенте
   useEffect(() => {
     const storedTheme = localStorage.getItem(storageKey) as Theme | null;
     if (storedTheme) {
@@ -36,7 +35,6 @@ export function ThemeProvider({
     }
   }, [storageKey]);
 
-  // применяем тему
   useEffect(() => {
     const root = window.document.documentElement;
 
