@@ -7,7 +7,7 @@ from .core.config import settings
 from .core.database import engine, Base
 from .core.elastic import es_client
 from .services.text_processor import text_processor
-from .api.endpoints import upload, search, documents, lemma, word_form, token
+from .api.endpoints import upload, search, documents, lemma, word_form, token, reports
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -60,6 +60,7 @@ app.include_router(documents.router, prefix="/api")
 app.include_router(lemma.router, prefix="/api")
 app.include_router(word_form.router, prefix="/api")
 app.include_router(token.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 
 
 @app.get("/")

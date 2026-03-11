@@ -30,6 +30,10 @@ export default [
     file: "routes/pos-stats.tsx",
   },
   {
+    path: "/reports",
+    file: "routes/reports.tsx",
+  },
+  {
     path: "/help",
     file: "routes/help.tsx",
   }
