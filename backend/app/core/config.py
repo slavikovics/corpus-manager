@@ -9,11 +9,6 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     SECRET_KEY: str = "dev-secret-key-change-in-production"
-    
-    @property
-    def CORS_ORIGINS(self) -> List[str]:
-        return ["*"]
-    
     DATABASE_URL: PostgresDsn = "postgresql://corpus:corpus_password@postgres:5432/corpus_db"
     
     @field_validator("DATABASE_URL", mode="before")
