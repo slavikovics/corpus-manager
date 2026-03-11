@@ -69,7 +69,6 @@ class CorpusBuilder:
                 self._bulk_index_in_elasticsearch(doc_id, tokens, metadata)
             )
 
-            processing_time = (datetime.now() - start_time).total_seconds()
             await db.execute(
                 update(Document)
                 .where(Document.id == doc_id)
@@ -78,7 +77,9 @@ class CorpusBuilder:
             )
             await db.commit()
             await db.flush()
-            logger.info(f"Successfully completed processing document {doc_id}")
+
+            processing_time = (datetime.now() - start_time).total_seconds()
+            logger.info(f"!!!!!! Successfully completed processing document {doc_id}. Processing time: {processing_time}.")
 
             return {
                 "document_id": doc_id,
@@ -251,31 +252,6 @@ class CorpusBuilder:
         except Exception as e:
             logger.error(f"Error indexing to Elasticsearch: {e}")
 
-    async def process_documents_bulk(
-            self,
-            documents: List[Dict[str, Any]],
-            db: AsyncSession
-    ) -> List[Dict[str, Any]]:
-        results = []
-
-        for doc in documents:
-            try:
-                result = await self.process_document(
-                    file_path=doc['file_path'],
-                    file_type=doc['file_type'],
-                    metadata=doc.get('metadata', {}),
-                    db=db
-                )
-                results.append(result)
-            except Exception as e:
-                logger.error(f"Failed to process document {doc.get('file_path')}: {e}")
-                results.append({
-                    "error": str(e),
-                    "file_path": doc.get('file_path')
-                })
-
-        return results
-
     @staticmethod
     async def recalculate_global_stats(
             db: AsyncSession
@@ -398,55 +374,6 @@ class CorpusBuilder:
         except Exception as e:
             logger.error(f"Error inserting tokens for document {doc_id}: {e}")
             raise
-
-    @staticmethod
-    async def get_document_statistics(
-            doc_id: int,
-            db: AsyncSession
-    ) -> Dict[str, Any]:
-        doc_result = await db.execute(
-            select(Document).where(Document.id == doc_id)
-        )
-        document = doc_result.scalar_one_or_none()
-
-        if not document:
-            raise ValueError(f"Document {doc_id} not found")
-
-        stats_result = await db.execute(
-            select(DocumentWordFormStats)
-            .where(DocumentWordFormStats.doc_id == doc_id)
-            .order_by(DocumentWordFormStats.frequency.desc())
-            .limit(100)
-        )
-        top_words = stats_result.scalars().all()
-
-        pos_stats = await db.execute(
-            select(
-                DocumentWordFormStats.pos,
-                func.sum(DocumentWordFormStats.frequency).label('total'),
-                func.count().label('unique_words')
-            )
-            .where(DocumentWordFormStats.doc_id == doc_id)
-            .group_by(DocumentWordFormStats.pos)
-        )
-
-        return {
-            "document_id": document.id,
-            "title": document.title,
-            "author": document.author,
-            "year": document.year,
-            "language": document.language,
-            "word_count": document.word_count,
-            "unique_words": len(top_words),
-            "top_words": [
-                {"word": w.lemma, "pos": w.pos, "frequency": w.frequency}
-                for w in top_words
-            ],
-            "pos_distribution": [
-                {"pos": row.pos, "count": row.total, "unique": row.unique_words}
-                for row in pos_stats
-            ]
-        }
 
 
 corpus_builder = CorpusBuilder()
