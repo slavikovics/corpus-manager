@@ -171,13 +171,10 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {/* Заголовок */}
       <h1 className="text-3xl font-bold mb-6 text-foreground">Поиск и конкорданс</h1>
 
-      {/* Форма поиска */}
       <Card className="p-6 mb-8 bg-card border-border">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Строка поиска */}
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
@@ -194,9 +191,7 @@ export default function SearchPage() {
             </Button>
           </div>
 
-          {/* Параметры поиска */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Тип поиска */}
             <div>
               <label className="text-sm font-medium mb-1 block text-foreground">
                 Тип поиска
@@ -218,7 +213,6 @@ export default function SearchPage() {
               </Select>
             </div>
 
-            {/* Поле */}
             <div>
               <label className="text-sm font-medium mb-1 block text-foreground">
                 Поле
@@ -240,7 +234,6 @@ export default function SearchPage() {
               </Select>
             </div>
 
-            {/* Slop для фраз */}
             {mode === 'phrase' && (
               <div>
                 <label className="text-sm font-medium mb-1 block text-foreground">
@@ -257,7 +250,6 @@ export default function SearchPage() {
             )}
           </div>
 
-          {/* Кнопка сброса */}
           {query && (
             <div className="flex justify-end">
               <Button
@@ -275,17 +267,14 @@ export default function SearchPage() {
         </form>
       </Card>
 
-      {/* Результаты поиска */}
       {query && (
         <div className="space-y-4">
-          {/* Счетчик результатов */}
           {!loading && !error && (
             <div className="text-sm text-muted-foreground">
               Найдено {totalCount.toLocaleString()} результатов
             </div>
           )}
 
-          {/* Таблица результатов */}
           <DataTable
             columns={columns}
             data={results}
@@ -303,7 +292,6 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* Пустое состояние */}
       {!query && (
         <Card className="p-12 text-center bg-card border-border">
           <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />

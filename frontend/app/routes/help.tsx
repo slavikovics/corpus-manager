@@ -19,13 +19,13 @@ import {
   AlertCircle,
   Clock,
   XCircle,
+  FileBarChart
 } from "lucide-react";
 import { Badge } from "app/components/ui/badge";
 
 export default function HelpPage() {
   return (
     <div className="container mx-auto py-10 max-w-4xl">
-      {/* Заголовок */}
       <div className="flex items-center gap-3 mb-8">
         <HelpCircle className="h-8 w-8 text-blue-500" />
         <h1 className="text-3xl font-bold">Справка по использованию</h1>
@@ -36,9 +36,7 @@ export default function HelpPage() {
         Ниже описаны основные функции и возможности интерфейса.
       </p>
 
-      {/* Разделы справки */}
       <div className="space-y-6">
-        {/* Документы */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -101,7 +99,6 @@ export default function HelpPage() {
           </div>
         </Card>
 
-        {/* Леммы и Словоформы */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
@@ -137,7 +134,6 @@ export default function HelpPage() {
           </div>
         </Card>
 
-        {/* Поиск и конкорданс */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -177,7 +173,6 @@ export default function HelpPage() {
           </div>
         </Card>
 
-        {/* Токены */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
@@ -218,7 +213,6 @@ export default function HelpPage() {
           </div>
         </Card>
 
-        {/* Статистика по частям речи */}
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-pink-100 dark:bg-pink-900 rounded-lg">
@@ -243,7 +237,51 @@ export default function HelpPage() {
           </div>
         </Card>
 
-        {/* Интерфейс */}
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+              <FileBarChart className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
+            </div>
+            <h2 className="text-2xl font-semibold">Отчёты</h2>
+          </div>
+          
+          <div className="space-y-4 pl-14">
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <FileBarChart className="h-4 w-4" /> Отчёт по корпусу
+              </h3>
+              <p className="text-muted-foreground">
+                Генерация PDF-отчёта со статистикой по всему корпусу.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Отчёт включает: общую статистику, топ-100 лемм и словоформ, документы с самым большим количеством токенов.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <FileText className="h-4 w-4" /> Отчёт по документу
+              </h3>
+              <p className="text-muted-foreground">
+                Детальный анализ конкретного документа.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Отчёт включает: метаданные документа, самые частотные слова и леммы.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <Download className="h-4 w-4" /> Скачивание
+              </h3>
+              <p className="text-muted-foreground">
+                После генерации PDF-файл автоматически скачивается на ваше устройство. 
+                Имя файла содержит тип отчёта и временную метку.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">

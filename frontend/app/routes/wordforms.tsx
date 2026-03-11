@@ -17,27 +17,7 @@ import { SearchBar } from "app/components/shared/SearchBar";
 import { wordFormsApi } from "app/api/wordforms";
 import type { WordFormStatsResponse } from "app/api/types";
 import { cn } from "app/lib/utils";
-
-const POS_TAGS = [
-  { value: "ADJ", label: "Прилагательное" },
-  { value: "ADP", label: "Предлог" },
-  { value: "ADV", label: "Наречие" },
-  { value: "AUX", label: "Вспомогательный глагол" },
-  { value: "CONJ", label: "Союз" },
-  { value: "CCONJ", label: "Сочинительный союз" },
-  { value: "DET", label: "Детерминатив" },
-  { value: "INTJ", label: "Междометие" },
-  { value: "NOUN", label: "Существительное" },
-  { value: "NUM", label: "Числительное" },
-  { value: "PART", label: "Частица" },
-  { value: "PRON", label: "Местоимение" },
-  { value: "PROPN", label: "Имя собственное" },
-  { value: "PUNCT", label: "Пунктуация" },
-  { value: "SCONJ", label: "Подчинительный союз" },
-  { value: "SYM", label: "Символ" },
-  { value: "VERB", label: "Глагол" },
-  { value: "X", label: "Другое" },
-];
+import { POS_TAGS } from "~/posTags";
 
 export default function WordFormsPage() {
   const navigate = useNavigate();
@@ -139,15 +119,12 @@ export default function WordFormsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-foreground">Словоформы</h1>
       </div>
 
-      {/* Фильтры */}
       <div className="bg-muted/50 p-4 rounded-lg mb-6 space-y-4 border border-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Поиск по словоформе */}
           <div>
             <label className="text-sm font-medium mb-1 block text-foreground">
               Поиск по словоформе
@@ -160,7 +137,6 @@ export default function WordFormsPage() {
             />
           </div>
 
-          {/* Часть речи */}
           <div>
             <label className="text-sm font-medium mb-1 block text-foreground">
               Часть речи
@@ -183,7 +159,6 @@ export default function WordFormsPage() {
             </Select>
           </div>
 
-          {/* Минимальная частота */}
           <div>
             <label className="text-sm font-medium mb-1 block text-foreground">
               Минимальная частота
@@ -201,7 +176,6 @@ export default function WordFormsPage() {
           </div>
         </div>
 
-        {/* Кнопка сброса фильтров */}
         {hasActiveFilters && (
           <div className="flex justify-end">
             <Button
@@ -217,7 +191,6 @@ export default function WordFormsPage() {
         )}
       </div>
 
-      {/* Таблица словоформ */}
       <DataTable
         columns={columns}
         data={wordForms}
@@ -234,7 +207,6 @@ export default function WordFormsPage() {
         onRowClick={handleRowClick}
       />
 
-      {/* Информация о количестве */}
       {!loading && !error && wordForms.length > 0 && (
         <div className="mt-4 text-sm text-muted-foreground">
           Показано {wordForms.length} из {totalCount.toLocaleString()} словоформ

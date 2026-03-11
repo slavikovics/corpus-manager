@@ -100,14 +100,12 @@ export default function DocumentsPage() {
   useEffect(() => {
     fetchDocuments();
     
-    // Устанавливаем интервал для автоматической перезагрузки каждые 3 секунды
     const intervalId = setInterval(() => {
       fetchDocuments();
     }, 3000);
     
-    // Очищаем интервал при размонтировании компонента
     return () => clearInterval(intervalId);
-  }, [skip, limit]); // Зависимости остаются те же
+  }, [skip, limit]);
 
   
   const handleDelete = async () => {
@@ -220,7 +218,6 @@ export default function DocumentsPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {/* Заголовок и кнопка загрузки */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-foreground">Документы</h1>
         
@@ -253,7 +250,6 @@ export default function DocumentsPage() {
         </Dialog>
       </div>
 
-      {/* Легенда статусов */}
       <div className="bg-muted/50 p-3 rounded-lg mb-6 flex flex-wrap items-center gap-4 text-sm border border-border">
         <span className="text-muted-foreground font-medium">Статусы:</span>
         <div className="flex items-center gap-2">
@@ -274,7 +270,6 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Таблица документов */}
       <DataTable
         columns={columns}
         data={documents}
@@ -290,7 +285,6 @@ export default function DocumentsPage() {
         error={error}
       />
 
-      {/* Диалог подтверждения удаления */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

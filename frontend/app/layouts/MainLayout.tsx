@@ -32,7 +32,6 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Фиксированная боковая панель */}
       <div className="w-64 fixed inset-y-0 left-0 bg-card border-r border-border flex flex-col">
         <div className="p-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">Corpus Manager</h1>
@@ -64,7 +63,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         </nav>
       </div>
 
-      {/* Основной контент с отступом для фиксированной панели */}
       <div className="flex-1 ml-64 bg-background min-h-screen">
         {children}
       </div>

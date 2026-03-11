@@ -11,7 +11,7 @@ router = APIRouter(prefix="/word-form-stats", tags=["word statistics"])
 async def list_word_form_statistics(
         skip: int = Query(0, ge=0),
         limit: int = Query(100, ge=1, le=1000),
-        search: Optional[str] = Query(None, description="Search by lemma"),
+        search: Optional[str] = Query(None, description="Search by word form"),
         min_frequency: Optional[int] = Query(None, ge=0),
         pos: Optional[str] = Query(None, description="Filter by part of speech"),
         db: AsyncSession = Depends(get_db)
@@ -19,7 +19,7 @@ async def list_word_form_statistics(
     query = select(WordFormStats)
 
     if search:
-        query = query.where(WordFormStats.lemma.ilike(f"%{search}%"))
+        query = query.where(WordFormStats.word.ilike(f"%{search}%"))
 
     if min_frequency:
         query = query.where(WordFormStats.total_frequency >= min_frequency)

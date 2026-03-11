@@ -49,7 +49,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
             </div>
           ) : token ? (
             <div className="space-y-6 pb-4">
-              {/* Информация о документе */}
               {token.document && (
                 <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
                   <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-foreground">
@@ -118,7 +117,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                 </Card>
               )}
 
-              {/* Информация о токене */}
               <Card className="p-6 ml-2 mr-2 bg-card border-border shadow-sm">
                 <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-foreground">
                   <Type className="h-6 w-6 text-muted-foreground" />
@@ -171,7 +169,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                   />
                 </div>
 
-                {/* Специальные свойства */}
                 <div className="mt-4 pt-4 border-t border-border flex gap-2">
                   {token.is_punctuation && (
                     <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
@@ -189,7 +186,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                 </div>
               </Card>
 
-              {/* Контекст */}
               <Card className="p-6 ml-2 mr-2 bg-card border-border shadow-sm">
                 <h3 className="text-xl font-semibold mb-4 text-foreground">Контекст</h3>
                 <div className="bg-muted/50 p-6 rounded-lg border border-border w-full">
@@ -203,9 +199,7 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                 </div>
               </Card>
 
-              {/* Морфология и синтаксис */}
               <div className="ml-2 mr-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Морфологические признаки */}
                 {token.morph && Object.keys(token.morph).length > 0 && (
                   <Card className="p-6 bg-card border-border shadow-sm h-full">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-foreground">
@@ -225,7 +219,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                   </Card>
                 )}
 
-                {/* Синтаксические отношения */}
                 <Card className="p-6 bg-card border-border shadow-sm h-full">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-foreground">
                     <Network className="h-5 w-5 text-muted-foreground" />
@@ -246,7 +239,6 @@ export function TokenDetailDialog({ token, open, onOpenChange, loading }: TokenD
                 </Card>
               </div>
 
-              {/* Метаданные */}
               {token.metadata && Object.keys(token.metadata).length > 0 && (
                 <Card className="p-6 bg-card border-border shadow-sm">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-foreground">

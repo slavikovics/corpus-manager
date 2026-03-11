@@ -27,16 +27,6 @@ import { cn } from "app/lib/utils";
 import { toast } from "sonner";
 import { reportsApi } from "app/api/reports";
 
-
-const LANGUAGES = [
-  { value: "en", label: "Английский" },
-  { value: "ru", label: "Русский" },
-  { value: "de", label: "Немецкий" },
-  { value: "fr", label: "Французский" },
-  { value: "es", label: "Испанский" },
-  { value: "it", label: "Итальянский" },
-];
-
 export default function ReportsPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<'corpus' | 'document' | null>(null);
@@ -132,14 +122,13 @@ export default function ReportsPage() {
 
   return (
     <div className="container mx-auto py-10 max-w-3xl">
-      {}
       <div className="flex items-center gap-3 mb-8">
         <FileBarChart className="h-8 w-8 text-blue-500" />
         <h1 className="text-3xl font-bold">Отчёты</h1>
       </div>
 
       <p className="text-lg text-muted-foreground mb-8">
-        Сгенерируйте подробный отчёт по корпусу или отдельному документу в формате PDF.
+        Сгенерируйте отчёт по корпусу или отдельному документу в формате PDF.
       </p>
 
       <Tabs defaultValue="corpus" className="w-full">
@@ -148,18 +137,13 @@ export default function ReportsPage() {
           <TabsTrigger value="document">Отчёт по документу</TabsTrigger>
         </TabsList>
 
-        {}
         <TabsContent value="corpus">
           <Card className="p-6">
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold mb-4">Параметры отчёта</h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Отчёт включает статистику по документам, токенам, частям речи и другую аналитику.
-                </p>
               </div>
 
-              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Дата начала (опционально)</Label>
@@ -216,37 +200,6 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              {}
-              <div className="space-y-2">
-                <Label>Язык (опционально)</Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Все языки" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все языки</SelectItem>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="charts"
-                  checked={includeCharts}
-                  onCheckedChange={(checked) => setIncludeCharts(checked as boolean)}
-                />
-                <Label htmlFor="charts" className="cursor-pointer">
-                  Включить графики и диаграммы в отчёт
-                </Label>
-              </div>
-
-              {}
               <Button
                 onClick={handleCorpusReport}
                 disabled={loading === 'corpus'}
@@ -266,25 +219,21 @@ export default function ReportsPage() {
                 )}
               </Button>
 
-              {}
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <h3 className="font-medium mb-2 flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Отчёт включает:
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Общую информацию о корпусе (количество документов, токенов, предложений)</li>
-                  <li>Статистику по документам (распределение по датам, языкам, типам)</li>
-                  <li>Анализ частей речи (распределение, частотность)</li>
+                  <li>Общую информацию о корпусе (количество документов, токенов, лемм и словоформ)</li>
                   <li>Топ-100 самых частотных лемм и словоформ</li>
-                  <li>Графики и диаграммы для визуализации данных</li>
+                  <li>Топ-20 документов с самым большим количеством токенов</li>
                 </ul>
               </div>
             </div>
           </Card>
         </TabsContent>
 
-        {}
         <TabsContent value="document">
           <Card className="p-6">
             <div className="space-y-6">
@@ -295,7 +244,6 @@ export default function ReportsPage() {
                 </p>
               </div>
 
-              {}
               <div className="space-y-2">
                 <Label htmlFor="docId">ID документа</Label>
                 <Input
@@ -311,7 +259,6 @@ export default function ReportsPage() {
                 </p>
               </div>
 
-              {}
               <Button
                 onClick={handleDocumentReport}
                 disabled={loading === 'document' || !docId}
@@ -331,7 +278,6 @@ export default function ReportsPage() {
                 )}
               </Button>
 
-              {}
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <h3 className="font-medium mb-2 flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -339,10 +285,8 @@ export default function ReportsPage() {
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                   <li>Метаданные документа (название, автор, дата, язык)</li>
-                  <li>Основную статистику (количество токенов, предложений)</li>
-                  <li>Распределение частей речи в документе</li>
+                  <li>Основную статистику</li>
                   <li>Список самых частотных слов и лемм</li>
-                  <li>Статистику по длине предложений</li>
                 </ul>
               </div>
             </div>
@@ -350,7 +294,6 @@ export default function ReportsPage() {
         </TabsContent>
       </Tabs>
 
-      {}
       <div className="mt-8">
         <Card className="p-4 bg-muted/30">
           <h3 className="font-medium mb-2">Быстрые действия</h3>

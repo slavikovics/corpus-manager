@@ -17,7 +17,6 @@ const POS_COLORS = [
   "#14b8a6", "#d946ef", "#64748b", "#f43f5e", "#0ea5e9",
 ];
 
-// Конфигурация для чартов
 const chartConfig = {
   count: {
     label: "Количество токенов",
@@ -76,7 +75,6 @@ export default function PosStatsPage() {
     return (
       <div className="container mx-auto py-10">
         <h1 className="text-3xl font-bold mb-6 text-foreground">Статистика по частям речи</h1>
-        {/* Карточки с общей статистикой */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {[1, 2].map(i => (
             <Card key={i} className="p-6 bg-card border-border">
@@ -90,11 +88,9 @@ export default function PosStatsPage() {
             </Card>
           ))}
         </div>
-        {/* Диаграмма */}
         <Card className="p-6 mb-8 bg-card border-border">
           <Skeleton className="h-[400px] w-full" />
         </Card>
-        {/* Таблица */}
         <Card className="bg-card border-border">
           <div className="p-4 space-y-4">
             <Skeleton className="h-10 w-full" />
@@ -138,7 +134,6 @@ export default function PosStatsPage() {
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6 text-foreground">Статистика по частям речи</h1>
 
-      {/* Карточки с общей статистикой */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="p-6 bg-card border-border">
           <div className="flex items-center gap-4">
@@ -164,7 +159,6 @@ export default function PosStatsPage() {
         </Card>
       </div>
 
-      {/* Вкладки с диаграммами */}
       <Tabs defaultValue="pie" className="mb-8">
         <TabsList className="bg-muted">
           <TabsTrigger value="pie" className="data-[state=active]:bg-background">
@@ -289,7 +283,6 @@ export default function PosStatsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Таблица с данными */}
       <Card className="bg-card border-border">
         <div className="overflow-x-auto">
           <table className="w-full">

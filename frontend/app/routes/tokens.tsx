@@ -29,26 +29,7 @@ import { tokensApi } from "app/api/tokens";
 import type { TokenResponse, TokenDetailResponse } from "app/api/types";
 import { TokenDetailDialog } from "app/components/tokens/TokenDetailDialog";
 import { cn } from "app/lib/utils";
-
-const POS_TAGS = [
-  { value: "ADJ", label: "Прилагательное" },
-  { value: "ADP", label: "Предлог" },
-  { value: "ADV", label: "Наречие" },
-  { value: "AUX", label: "Вспомогательный глагол" },
-  { value: "CCONJ", label: "Сочинительный союз" },
-  { value: "DET", label: "Детерминатив" },
-  { value: "INTJ", label: "Междометие" },
-  { value: "NOUN", label: "Существительное" },
-  { value: "NUM", label: "Числительное" },
-  { value: "PART", label: "Частица" },
-  { value: "PRON", label: "Местоимение" },
-  { value: "PROPN", label: "Имя собственное" },
-  { value: "PUNCT", label: "Пунктуация" },
-  { value: "SCONJ", label: "Подчинительный союз" },
-  { value: "SYM", label: "Символ" },
-  { value: "VERB", label: "Глагол" },
-  { value: "X", label: "Другое" },
-];
+import { POS_TAGS } from "~/posTags";
 
 export default function TokensPage() {
   const navigate = useNavigate();
@@ -211,17 +192,13 @@ export default function TokensPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {/* Заголовок */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-foreground">Токены</h1>
       </div>
 
-      {/* Фильтры */}
       <Card className="p-4 mb-6 bg-card border-border">
         <div className="space-y-4">
-          {/* Основные фильтры */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* ID документа */}
             <div>
               <label className="text-sm font-medium mb-1 block text-foreground">
                 ID документа
@@ -235,7 +212,6 @@ export default function TokensPage() {
               />
             </div>
 
-            {/* Часть речи */}
             <div>
               <label className="text-sm font-medium mb-1 block text-foreground">
                 Часть речи
@@ -258,7 +234,6 @@ export default function TokensPage() {
               </Select>
             </div>
 
-            {/* Поиск по слову */}
             <div>
               <label className="text-sm font-medium mb-1 block text-foreground">
                 Поиск по слову
@@ -272,7 +247,6 @@ export default function TokensPage() {
             </div>
           </div>
 
-          {/* Кнопка расширенных фильтров */}
           <Button
             variant="ghost"
             size="sm"
@@ -283,10 +257,8 @@ export default function TokensPage() {
             {showAdvancedFilters ? "Скрыть расширенные фильтры" : "Показать расширенные фильтры"}
           </Button>
 
-          {/* Расширенные фильтры */}
           {showAdvancedFilters && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border">
-              {/* Поиск по лемме */}
               <div>
                 <label className="text-sm font-medium mb-1 block text-foreground">
                   Поиск по лемме
@@ -299,23 +271,8 @@ export default function TokensPage() {
                 />
               </div>
 
-              {/* ID предложения */}
-              <div>
-                <label className="text-sm font-medium mb-1 block text-foreground">
-                  ID предложения
-                </label>
-                <Input
-                  type="number"
-                  min="1"
-                  placeholder="Например: 5"
-                  value={sentenceId ?? ""}
-                  onChange={(e) => setSentenceId(e.target.value ? parseInt(e.target.value) : null)}
-                />
-              </div>
-
-              {/* Чекбоксы */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center">
+                <div className="flex items-center space-x-2 m-4">
                   <Checkbox
                     id="punctuation"
                     checked={isPunctuation === true}
@@ -339,7 +296,6 @@ export default function TokensPage() {
             </div>
           )}
 
-          {/* Кнопка сброса фильтров */}
           {hasActiveFilters && (
             <div className="flex justify-end pt-4 border-t border-border">
               <Button
@@ -356,7 +312,6 @@ export default function TokensPage() {
         </div>
       </Card>
 
-      {/* Таблица токенов */}
       <DataTable
         columns={columns}
         data={tokens}
@@ -372,7 +327,6 @@ export default function TokensPage() {
         error={error}
       />
 
-      {/* Диалог детальной информации */}
       <TokenDetailDialog
         token={selectedToken}
         open={detailDialogOpen}
