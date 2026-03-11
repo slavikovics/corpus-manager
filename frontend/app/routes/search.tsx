@@ -286,7 +286,7 @@ export default function SearchPage() {
               onPageChange: handlePageChange,
               onPageSizeChange: handlePageSizeChange,
             }}
-            loading={false}
+            loading={loading}
             error={error}
           />
         </div>
