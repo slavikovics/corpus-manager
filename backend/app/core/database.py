@@ -58,6 +58,7 @@ class Document(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     tokens = relationship("Token", back_populates="document", cascade="all, delete-orphan")
+    sentences = relationship("Sentence", back_populates="document", cascade="all, delete-orphan")
 
 
 class LemmaStats(Base):
@@ -118,7 +119,7 @@ class Token(Base):
 
     doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True, nullable=False, index=True)
     position = Column(Integer, primary_key=True, index=True)
-    sentence_id = Column(Integer)
+    sentence_id = Column(Integer, index=True)
     word = Column(String(255))
     lemma = Column(String(255))
     pos = Column(String(50))
@@ -131,6 +132,30 @@ class Token(Base):
     right_context = Column(String(510), nullable=True)
 
     document = relationship("Document", back_populates="tokens")
+    sentence = relationship("Sentence", back_populates="tokens",
+                            foreign_keys="[Token.doc_id, Token.sentence_id]",
+                            primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)")
+
+
+class Sentence(Base):
+    __tablename__ = "sentences"
+    __table_args__ = (
+        UniqueConstraint('doc_id', 'sentence_id', name='uq_doc_sentence'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), nullable=False, index=True)
+    sentence_id = Column(Integer, nullable=False, index=True)
+    start_position = Column(Integer, nullable=False)
+    end_position = Column(Integer, nullable=False)
+    token_count = Column(Integer, nullable=False, default=0)
+    text = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.now())
+
+    document = relationship("Document", back_populates="sentences")
+    tokens = relationship("Token", back_populates="sentence",
+                          foreign_keys="[Token.doc_id, Token.sentence_id]",
+                          primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)")
 
 
 async def get_db() -> AsyncSession:

@@ -186,3 +186,33 @@ export interface DocumentTokenStats {
   top_words: Array<{ word: string; frequency: number }>;
   top_lemmas: Array<{ lemma: string; frequency: number }>;
 }
+
+export interface SentenceResponse {
+  doc_id: number;
+  sentence_id: number;
+  start_position: number;
+  end_position: number;
+  token_count: number;
+  text: string;
+  document?: DocumentResponse | null;
+}
+
+export interface SentenceListResponse {
+  items: SentenceResponse[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface SentenceDetailResponse extends SentenceResponse {
+  tokens: TokenResponse[];
+  left_context?: string;
+  right_context?: string;
+}
+
+export interface SentenceSearchResponse {
+  items: SentenceResponse[];
+  total: number;
+  word: string;
+  doc_id?: number | null;
+}

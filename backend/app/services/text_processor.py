@@ -109,9 +109,9 @@ class TextProcessor:
         tokens = []
 
         token_position = 0
+        sentence_id = 0
 
         for sent in doc.sents:
-            sentence_id = sent.start
             words = [token.text for token in sent]
 
             for i, token in enumerate(sent):
@@ -127,6 +127,8 @@ class TextProcessor:
                 )
                 tokens.append(token_info)
                 token_position += 1
+
+            sentence_id += 1
 
         return tokens
 
@@ -144,6 +146,7 @@ class TextProcessor:
 
                 for sent in doc.sents:
                     words = [token.text for token in sent]
+                    logger.debug(f"Sentence: '{global_sentence_id}: {' '.join(words)}'")
 
                     for i, token in enumerate(sent):
                         if not token.text.strip():
@@ -197,86 +200,6 @@ class TextProcessor:
         }
 
         return token_info
-
-    def process_text_stream(self, text: str, batch_size: int = 1000) -> Generator[List[Dict[str, Any]], None, None]:
-        if not self.nlp:
-            raise RuntimeError("spaCy model not initialized")
-
-        clean_text = text.replace('\x00', '')
-
-        if len(clean_text) > self.max_length:
-            chunks = self._split_into_chunks(clean_text)
-
-            for chunk in chunks:
-                doc = self.nlp(chunk)
-                batch_tokens = []
-
-                for sent in doc.sents:
-                    words = [token.text for token in sent]
-
-                    for i, token in enumerate(sent):
-                        if not token.text.strip():
-                            continue
-
-                        token_info = self._extract_token_info(
-                            token=token,
-                            token_position=0,
-                            sentence_id=0,
-                            words=words,
-                            i=i
-                        )
-                        batch_tokens.append(token_info)
-
-                        if len(batch_tokens) >= batch_size:
-                            yield batch_tokens
-                            batch_tokens = []
-
-                if batch_tokens:
-                    yield batch_tokens
-        else:
-            doc = self.nlp(clean_text)
-            batch_tokens = []
-
-            for sent in doc.sents:
-                words = [token.text for token in sent]
-
-                for i, token in enumerate(sent):
-                    if not token.text.strip():
-                        continue
-
-                    token_info = self._extract_token_info(
-                        token=token,
-                        token_position=0,
-                        sentence_id=0,
-                        words=words,
-                        i=i
-                    )
-                    batch_tokens.append(token_info)
-
-                    if len(batch_tokens) >= batch_size:
-                        yield batch_tokens
-                        batch_tokens = []
-
-            if batch_tokens:
-                yield batch_tokens
-
-    @staticmethod
-    def extract_metadata(text: str, filename: str) -> Dict[str, Any]:
-        clean_text = text.replace('\x00', '')
-
-        metadata = {
-            "source_file": filename,
-            "word_count": len(clean_text.split()),
-            "char_count": len(clean_text)
-        }
-
-        lines = clean_text.strip().split('\n')
-        if lines:
-            first_line = lines[0].strip()
-            if first_line and len(first_line) < 200:
-                metadata["title"] = first_line
-
-        return metadata
 
 
 text_processor = TextProcessor()

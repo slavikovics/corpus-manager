@@ -3,11 +3,11 @@ import logging
 from datetime import datetime
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, func
+from sqlalchemy import select, insert, update, func, and_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 
-from ..core.database import Document, LemmaStats, WordFormStats, DocumentLemmaStats, DocumentWordFormStats, ProcessingStatus
+from ..core.database import Document, LemmaStats, WordFormStats, DocumentLemmaStats, DocumentWordFormStats, ProcessingStatus, Token, Sentence
 from ..core.elastic import es_client
 from ..services.text_processor import text_processor
 from ..services.file_handlers import FileHandler
@@ -61,6 +61,8 @@ class CorpusBuilder:
 
             await self._bulk_update_document_word_stats(doc_id, lemma_stats, db, key='lemma', data_type=DocumentLemmaStats)
             await self._bulk_update_document_word_stats(doc_id, word_forms_stats, db, key='word', data_type=DocumentWordFormStats)
+
+            await self.populate_sentences_table(db)
 
             await db.commit()
             logger.info(f"Successfully saved document {doc_id} to database")
@@ -374,6 +376,42 @@ class CorpusBuilder:
         except Exception as e:
             logger.error(f"Error inserting tokens for document {doc_id}: {e}")
             raise
+
+    async def populate_sentences_table(self, db: AsyncSession):
+        query = select(
+            Token.doc_id,
+            Token.sentence_id,
+            func.min(Token.position).label('start_pos'),
+            func.max(Token.position).label('end_pos'),
+            func.count(Token.position).label('token_count')
+        ).where(Token.sentence_id.isnot(None)).group_by(Token.doc_id, Token.sentence_id)
+
+        result = await db.execute(query)
+        rows = result.all()
+
+        for row in rows:
+            doc_id, sentence_id, start_pos, end_pos, token_count = row
+
+            token_query = select(Token.word).where(
+                and_(
+                    Token.doc_id == doc_id,
+                    Token.sentence_id == sentence_id
+                )
+            ).order_by(Token.position)
+
+            token_result = await db.execute(token_query)
+            words = token_result.scalars().all()
+            text = " ".join(words)
+
+            sentence = Sentence(
+                doc_id=doc_id,
+                sentence_id=sentence_id,
+                start_position=start_pos,
+                end_position=end_pos,
+                token_count=token_count,
+                text=text
+            )
+            db.add(sentence)
 
 
 corpus_builder = CorpusBuilder()

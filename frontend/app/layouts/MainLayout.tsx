@@ -8,7 +8,8 @@ import {
   Hash,
   PieChart,
   HelpCircle,
-  FileBarChart
+  FileBarChart,
+  MessageSquare
 } from "lucide-react";
 import { ThemeToggle } from "app/components/theme/theme-toggle";
 
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Словоформы", href: "/wordforms", icon: Type },
   { name: "Поиск", href: "/search", icon: Search },
   { name: "Токены", href: "/tokens", icon: Hash },
+  { name: "Предложения", href: "/sentences", icon: MessageSquare },
   { name: "Части речи", href: "/pos-stats", icon: PieChart },
   { name: "Отчёты", href: "/reports", icon: FileBarChart },
   { name: "Справка", href: "/help", icon: HelpCircle },

@@ -26,6 +26,10 @@ export default [
     file: "routes/tokens.tsx",
   },
   {
+    path: "/sentences",
+    file: "routes/sentences.tsx",
+  },
+  {
     path: "/pos-stats",
     file: "routes/pos-stats.tsx",
   },
