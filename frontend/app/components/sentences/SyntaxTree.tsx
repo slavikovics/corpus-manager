@@ -19,22 +19,22 @@ interface SyntaxTreeProps {
   maxHeight?: string | number;
 }
 
-const getPosStyle = (pos: string | null) => {
+export const getPosStyle = (pos: string | null) => {
   if (!pos) return POS_COLORS['default'];
   return POS_COLORS[pos] || POS_COLORS['default'];
 };
 
-const getDepColor = (dep: string | null): string => {
+export const getDepColor = (dep: string | null): string => {
   if (!dep) return '#9ca3af';
   return DEP_COLORS[dep] || '#9ca3af';
 };
 
-const getPosLabel = (pos: string | null): string => {
+export const getPosLabel = (pos: string | null): string => {
   if (!pos) return 'неизвестно';
   return POS_LABELS[pos] || pos;
 };
 
-const getDepLabel = (dep: string | null): string => {
+export const getDepLabel = (dep: string | null): string => {
   if (!dep) return 'неизвестно';
   return DEP_LABELS[dep] || dep;
 };

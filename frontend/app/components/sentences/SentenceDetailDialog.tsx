@@ -10,6 +10,7 @@ import { Skeleton } from "app/components/ui/skeleton";
 import { ScrollArea } from "app/components/ui/scroll-area";
 import type { SentenceDetailResponse } from "app/api/types";
 import { SyntaxTree } from "./SyntaxTree";
+import { DependencyGraph } from "./DependencyGraph";
 import { DEP_COLORS, DEP_LABELS } from "~/posTags";
 import {
   FileText,
@@ -141,6 +142,15 @@ export function SentenceDetailDialog({
                   Синтаксический разбор
                 </h3>
                 <SyntaxTree tokens={sentence.tokens} />
+              </Card>
+
+              {/* Визуализация графа зависимостей */}
+              <Card className="p-4">
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <Network className="h-4 w-4" />
+                Граф зависимостей:
+              </h4>
+                <DependencyGraph tokens={sentence.tokens} />
               </Card>
 
               {/* Таблица токенов для справки */}
