@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "app/components/ui/tooltip";
+import { POS_COLORS, POS_LABELS, DEP_COLORS, DEP_LABELS } from "~/posTags";
 import { ScrollArea, ScrollBar } from "app/components/ui/scroll-area";
 import type { TokenResponse } from "app/api/types";
 import { Info } from "lucide-react";
@@ -17,83 +18,6 @@ interface SyntaxTreeProps {
   className?: string;
   maxHeight?: string | number;
 }
-
-// Цвета для разных частей речи
-const POS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'NOUN': { bg: '#3b82f620', text: '#3b82f6', border: '#3b82f6' }, // синий
-  'VERB': { bg: '#ef444420', text: '#ef4444', border: '#ef4444' }, // красный
-  'ADJ': { bg: '#10b98120', text: '#10b981', border: '#10b981' }, // зеленый
-  'ADV': { bg: '#f59e0b20', text: '#f59e0b', border: '#f59e0b' }, // оранжевый
-  'ADP': { bg: '#8b5cf620', text: '#8b5cf6', border: '#8b5cf6' }, // фиолетовый
-  'PRON': { bg: '#ec489920', text: '#ec4899', border: '#ec4899' }, // розовый
-  'DET': { bg: '#06b6d420', text: '#06b6d4', border: '#06b6d4' }, // голубой
-  'CONJ': { bg: '#f9731620', text: '#f97316', border: '#f97316' }, // оранжевый
-  'CCONJ': { bg: '#f9731620', text: '#f97316', border: '#f97316' }, // оранжевый
-  'SCONJ': { bg: '#f9731620', text: '#f97316', border: '#f97316' }, // оранжевый
-  'NUM': { bg: '#84cc1620', text: '#84cc16', border: '#84cc16' }, // лаймовый
-  'PART': { bg: '#a855f720', text: '#a855f7', border: '#a855f7' }, // пурпурный
-  'INTJ': { bg: '#d946ef20', text: '#d946ef', border: '#d946ef' }, // ярко-розовый
-  'PUNCT': { bg: '#6b728020', text: '#6b7280', border: '#6b7280' }, // серый
-  'X': { bg: '#6b728020', text: '#6b7280', border: '#6b7280' }, // серый
-  'default': { bg: '#9ca3af20', text: '#9ca3af', border: '#9ca3af' }, // светло-серый
-};
-
-// Цвета для разных типов зависимостей
-const DEP_COLORS: Record<string, string> = {
-  'nsubj': '#3b82f6',
-  'nsubj:pass': '#3b82f6',
-  'obj': '#10b981',
-  'iobj': '#10b981',
-  'obl': '#f59e0b',
-  'advmod': '#f59e0b',
-  'amod': '#8b5cf6',
-  'nmod': '#8b5cf6',
-  'det': '#ec4899',
-  'case': '#6b7280',
-  'conj': '#ef4444',
-  'cc': '#ef4444',
-  'aux': '#14b8a6',
-  'root': '#000000',
-  'punct': '#9ca3af',
-};
-
-// Словарь для перевода частей речи
-const POS_LABELS: Record<string, string> = {
-  'NOUN': 'существительное',
-  'VERB': 'глагол',
-  'ADJ': 'прилагательное',
-  'ADV': 'наречие',
-  'ADP': 'предлог',
-  'PRON': 'местоимение',
-  'DET': 'детерминатив',
-  'CONJ': 'союз',
-  'CCONJ': 'сочинит. союз',
-  'SCONJ': 'подчинит. союз',
-  'NUM': 'числительное',
-  'PART': 'частица',
-  'INTJ': 'междометие',
-  'PUNCT': 'пунктуация',
-  'X': 'другое',
-};
-
-// Словарь для перевода зависимостей
-const DEP_LABELS: Record<string, string> = {
-  'nsubj': 'подлежащее',
-  'nsubj:pass': 'подлежащее страд.',
-  'obj': 'дополнение',
-  'iobj': 'косв. дополнение',
-  'obl': 'обстоятельство',
-  'advmod': 'обст. образа действия',
-  'amod': 'определение',
-  'nmod': 'несогл. определение',
-  'det': 'определитель',
-  'case': 'предлог',
-  'conj': 'союзная связь',
-  'cc': 'сочинит. союз',
-  'aux': 'вспом. глагол',
-  'root': 'главное',
-  'punct': 'пунктуация',
-};
 
 const getPosStyle = (pos: string | null) => {
   if (!pos) return POS_COLORS['default'];

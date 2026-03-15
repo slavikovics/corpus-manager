@@ -197,7 +197,6 @@ export default function SentencesPage() {
     <div className="container mx-auto py-10">
       {}
       <div className="flex items-center gap-3 mb-6">
-        <MessageSquare className="h-8 w-8 text-blue-500" />
         <h1 className="text-3xl font-bold">Предложения</h1>
       </div>
 

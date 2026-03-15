@@ -10,6 +10,7 @@ import { Skeleton } from "app/components/ui/skeleton";
 import { ScrollArea } from "app/components/ui/scroll-area";
 import type { SentenceDetailResponse } from "app/api/types";
 import { SyntaxTree } from "./SyntaxTree";
+import { DEP_COLORS, DEP_LABELS } from "~/posTags";
 import {
   FileText,
   Hash,
@@ -207,41 +208,7 @@ export function SentenceDetailDialog({
 }
 
 // Вспомогательные функции для цветов и подписей (нужно вынести или импортировать)
-const DEP_COLORS: Record<string, string> = {
-  'nsubj': '#3b82f6',
-  'nsubj:pass': '#3b82f6',
-  'obj': '#10b981',
-  'iobj': '#10b981',
-  'obl': '#f59e0b',
-  'advmod': '#f59e0b',
-  'amod': '#8b5cf6',
-  'nmod': '#8b5cf6',
-  'det': '#ec4899',
-  'case': '#6b7280',
-  'conj': '#ef4444',
-  'cc': '#ef4444',
-  'aux': '#14b8a6',
-  'root': '#000000',
-  'punct': '#9ca3af',
-};
 
-const DEP_LABELS: Record<string, string> = {
-  'nsubj': 'подлежащее',
-  'nsubj:pass': 'подлежащее страд.',
-  'obj': 'дополнение',
-  'iobj': 'косв. дополнение',
-  'obl': 'обстоятельство',
-  'advmod': 'обст. образа действия',
-  'amod': 'определение',
-  'nmod': 'несогл. определение',
-  'det': 'определитель',
-  'case': 'предлог',
-  'conj': 'союзная связь',
-  'cc': 'сочинит. союз',
-  'aux': 'вспом. глагол',
-  'root': 'главное',
-  'punct': 'пунктуация',
-};
 
 const getDepColor = (dep: string | null): string => {
   if (!dep) return '#9ca3af';
