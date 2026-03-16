@@ -352,6 +352,7 @@ class CorpusBuilder:
                         'morph': morph_value,
                         'dep': str(token.get('dep')),
                         'head': str(token.get('head', '')) if token.get('head') else None,
+                        'head_position': int(token.get('head_position', '')) if token.get('head_position') else None,
                         'is_punctuation': token.get('is_punctuation', False),
                         'is_stopword': token.get('is_stopword', False),
                         'left_context': token.get('left_context'),

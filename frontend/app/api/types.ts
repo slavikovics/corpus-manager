@@ -148,6 +148,7 @@ export interface TokenResponse {
   is_punctuation: boolean;
   is_stopword: boolean;
   head: string | null;
+  head_position: number | null;
 }
 
 export interface TokenListResponse {

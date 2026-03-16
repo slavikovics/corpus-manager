@@ -126,6 +126,7 @@ class Token(Base):
     morph = Column(JSON, nullable=True)
     dep = Column(String(255), nullable=True)
     head = Column(String(255), nullable=True)
+    head_position = Column(Integer)
     is_punctuation = Column(Boolean, nullable=True)
     is_stopword = Column(Boolean, nullable=True)
     left_context = Column(String(510), nullable=True)

@@ -51,7 +51,6 @@ export function SentenceDetailDialog({
             </div>
           ) : sentence ? (
             <div className="space-y-6 pb-4">
-              {/* Информация о документе */}
               {sentence.document && (
                 <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
@@ -81,7 +80,6 @@ export function SentenceDetailDialog({
                 </Card>
               )}
 
-              {/* Основная информация о предложении */}
               <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Type className="h-5 w-5" />
@@ -110,14 +108,12 @@ export function SentenceDetailDialog({
                   </div>
                 </div>
 
-                {/* Текст предложения */}
                 <div className="bg-muted p-4 rounded-lg">
                   <div className="text-sm text-muted-foreground mb-2">Текст:</div>
                   <p className="text-lg leading-relaxed">{sentence.text}</p>
                 </div>
               </Card>
 
-              {/* Контекст (если есть) */}
               {(sentence.left_context || sentence.right_context) && (
                 <Card className="p-4 bg-muted/30">
                   <h3 className="font-semibold mb-2">Контекст</h3>
@@ -135,7 +131,6 @@ export function SentenceDetailDialog({
                 </Card>
               )}
 
-              {/* Синтаксический разбор */}
               <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Network className="h-5 w-5" />
@@ -144,8 +139,7 @@ export function SentenceDetailDialog({
                 <SyntaxTree tokens={sentence.tokens} />
               </Card>
 
-              {/* Визуализация графа зависимостей */}
-              <Card className="p-4">
+              <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
               <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
               <Network className="h-4 w-4" />
                 Граф зависимостей:
@@ -153,57 +147,72 @@ export function SentenceDetailDialog({
                 <DependencyGraph tokens={sentence.tokens} />
               </Card>
 
-              {/* Таблица токенов для справки */}
-              <Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Hash className="h-5 w-5" />
-                  Детальная информация о токенах
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full p-2">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Поз.</th>
-                        <th className="text-left p-2">Слово</th>
-                        <th className="text-left p-2">Лемма</th>
-                        <th className="text-left p-2">POS</th>
-                        <th className="text-left p-2">Роль</th>
-                        <th className="text-left p-2">Главное</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sentence.tokens.map((token) => (
-                        <tr key={token.position} className="border-b hover:bg-muted/50">
-                          <td className="p-2">{token.position}</td>
-                          <td className="p-2 font-medium">{token.word}</td>
-                          <td className="p-2">{token.lemma || '-'}</td>
-                          <td className="p-2">
-                            <Badge variant="outline">{token.pos || '-'}</Badge>
-                          </td>
-                          <td className="p-2">
-                            <span 
-                              className="px-2 py-1 rounded text-xs"
-                              style={{ 
-                                backgroundColor: `${token.dep ? getDepColor(token.dep) : '#9ca3af'}20`,
-                                color: token.dep ? getDepColor(token.dep) : '#9ca3af',
-                              }}
-                            >
-                              {getDepLabel(token.dep)}
-                            </span>
-                          </td>
-                          <td className="p-2">
-                            {token.head !== null ? (
-                              <span>
-                                {token.head}
-                              </span>
-                            ) : '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+<Card className="p-6 mt-2 ml-2 mr-2 bg-card border-border shadow-sm">
+  <h3 className="font-semibold mb-3 flex items-center gap-2">
+    <Hash className="h-5 w-5" />
+    Детальная информация о токенах
+  </h3>
+  <div className="overflow-x-auto">
+    <table className="w-full p-2 table-fixed">
+      <thead>
+        <tr className="border-b">
+          <th className="text-left p-2 w-[60px]">Поз.</th>
+          <th className="text-left p-2 w-[150px]">Слово</th>
+          <th className="text-left p-2 w-[150px]">Лемма</th>
+          <th className="text-left p-2 w-[70px]">POS</th>
+          <th className="text-left p-2 w-[150px]">Роль</th>
+          <th className="text-left p-2 w-[80px]">Главное</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sentence.tokens.map((token) => (
+          <tr key={token.position} className="border-b hover:bg-muted/50">
+            <td className="p-2 w-[60px]">{token.position}</td>
+            
+            <td className="p-2 w-[150px]">
+              <div className="truncate max-w-[130px]" title={token.word}>
+                {token.word}
+              </div>
+            </td>
+            
+            <td className="p-2 w-[150px]">
+              <div className="truncate max-w-[130px]" title={token.lemma || '-'}>
+                {token.lemma || '-'}
+              </div>
+            </td>
+            
+            <td className="p-2 w-[70px]">
+              <Badge 
+                variant="outline" 
+                className="truncate max-w-[70px] block text-center"
+                title={token.pos || '-'}
+              >
+                {token.pos || '-'}
+              </Badge>
+            </td>
+            
+            <td className="p-2 w-[150px]">
+              <span 
+                className="px-2 py-1 rounded text-xs text-center block truncate max-w-[130px]"
+                style={{ 
+                  backgroundColor: `${token.dep ? getDepColor(token.dep) : '#9ca3af'}20`,
+                  color: token.dep ? getDepColor(token.dep) : '#9ca3af',
+                }}
+                title={getDepLabel(token.dep)}
+              >
+                {getDepLabel(token.dep)}
+              </span>
+            </td>
+        
+            <td className="p-2 w-[80px] truncate max-w-[70px]">
+              {token.head !== null ? token.head : '-'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</Card>
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
@@ -216,9 +225,6 @@ export function SentenceDetailDialog({
     </Dialog>
   );
 }
-
-// Вспомогательные функции для цветов и подписей (нужно вынести или импортировать)
-
 
 const getDepColor = (dep: string | null): string => {
   if (!dep) return '#9ca3af';

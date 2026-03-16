@@ -20,6 +20,7 @@ class TokenDetailResponse(TokenBasicResponse):
     morph: Optional[Dict] = None
     dep: Optional[str] = None
     head: Optional[str] = None
+    head_position: Optional[int] = None
     left_context: Optional[str] = None
     right_context: Optional[str] = None
     document: Optional[DocumentInDB] = None

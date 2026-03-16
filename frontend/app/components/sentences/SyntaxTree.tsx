@@ -48,10 +48,8 @@ export function SyntaxTree({
   const tokensContainerRef = useRef<HTMLDivElement>(null);
   const [showVerticalScroll, setShowVerticalScroll] = useState(false);
   
-  // Сортируем токены по позиции
   const sortedTokens = [...tokens].sort((a, b) => a.position - b.position);
 
-  // Эффект для автоматического скролла к началу при смене предложения
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollLeft = 0;
@@ -59,7 +57,6 @@ export function SyntaxTree({
     }
   }, [tokens]);
 
-  // Эффект для проверки необходимости вертикального скролла
   useEffect(() => {
     const checkOverflow = () => {
       if (tokensContainerRef.current && containerRef.current) {
@@ -84,7 +81,6 @@ export function SyntaxTree({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Предложение с цветными словами и адаптивным переносом */}
       <Card className="p-6 bg-white dark:bg-gray-900 overflow-hidden">
         <div
           ref={containerRef}
@@ -106,7 +102,7 @@ export function SyntaxTree({
                   <Tooltip key={token.position}>
                     <TooltipTrigger asChild>
                       <span
-                        className="px-3 py-1.5 rounded-lg cursor-help transition-all hover:scale-105 inline-block"
+                        className="px-3 py-1.5 rounded-lg cursor-pointer transition-all hover:scale-105 inline-block"
                         style={{
                           backgroundColor: style.bg,
                           border: `1px solid ${style.border}`,
@@ -116,22 +112,32 @@ export function SyntaxTree({
                         {token.word}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-popover text-popover-foreground border shadow-md">
-                      <div className="space-y-2">
-                        <div className="font-medium">{token.word}</div>
+                    <TooltipContent 
+                      className="max-w-xs text-popover-foreground border shadow-md"
+                      sideOffset={5}
+                    >
+                      <div className="space-y-2 max-w-[280px]">
+                        <div className="font-medium truncate" title={token.word}>
+                          {token.word}
+                        </div>
+                        
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="text-muted-foreground">Лемма:</div>
-                          <div>{token.lemma || '-'}</div>
+                          <div className="truncate" title={token.lemma || '-'}>
+                            {token.lemma || '-'}
+                          </div>
                           
                           <div className="text-muted-foreground">Часть речи:</div>
                           <div>
-                            <Badge 
+                            <Badge
                               variant="outline"
+                              className="text-center truncate max-w-[120px]"
                               style={{
                                 backgroundColor: style.bg,
                                 borderColor: style.border,
                                 color: style.text,
                               }}
+                              title={getPosLabel(token.pos)}
                             >
                               {getPosLabel(token.pos)}
                             </Badge>
@@ -140,28 +146,33 @@ export function SyntaxTree({
                           <div className="text-muted-foreground">Роль:</div>
                           <div>
                             <span
-                              className="px-2 py-0.5 rounded text-xs"
+                              className="px-2 py-0.5 rounded text-xs text-center block truncate max-w-[120px]"
                               style={{
                                 backgroundColor: `${getDepColor(token.dep)}20`,
                                 color: getDepColor(token.dep),
                                 border: `1px solid ${getDepColor(token.dep)}`,
                               }}
+                              title={getDepLabel(token.dep)}
                             >
                               {getDepLabel(token.dep)}
                             </span>
                           </div>
-                          
+
                           <div className="text-muted-foreground">Позиция:</div>
                           <div>{token.position}</div>
                           
                           {token.head && (
                             <>
                               <div className="text-muted-foreground">Главное слово:</div>
-                              <div className="font-medium">{token.head}</div>
+                              <div 
+                                className="font-medium truncate" 
+                                title={typeof token.head === 'string' ? token.head : token.head.toString()}
+                              >
+                                {typeof token.head === 'string' ? token.head : token.head}
+                              </div>
                             </>
                           )}
 
-                          {/* Морфологические признаки */}
                           {token.morph && Object.keys(token.morph).length > 0 && (
                             <>
                               <div className="text-muted-foreground col-span-2 mt-1 font-medium">
@@ -169,8 +180,12 @@ export function SyntaxTree({
                               </div>
                               {Object.entries(token.morph).map(([key, value]) => (
                                 <Fragment key={key}>
-                                  <div className="text-muted-foreground pl-2">{key}:</div>
-                                  <div>{value}</div>
+                                  <div className="text-muted-foreground pl-2 truncate" title={key}>
+                                    {key}:
+                                  </div>
+                                  <div className="truncate" title={value}>
+                                    {value}
+                                  </div>
                                 </Fragment>
                               ))}
                             </>
@@ -179,9 +194,17 @@ export function SyntaxTree({
                           {(token.is_punctuation || token.is_stopword) && (
                             <>
                               <div className="text-muted-foreground">Свойства:</div>
-                              <div className="flex gap-1">
-                                {token.is_punctuation && <Badge variant="outline">Punct</Badge>}
-                                {token.is_stopword && <Badge variant="outline">Stop</Badge>}
+                              <div className="flex gap-1 flex-wrap">
+                                {token.is_punctuation && (
+                                  <Badge variant="outline" className="truncate max-w-[60px]" title="Punct">
+                                    Punct
+                                  </Badge>
+                                )}
+                                {token.is_stopword && (
+                                  <Badge variant="outline" className="truncate max-w-[60px]" title="Stop">
+                                    Stop
+                                  </Badge>
+                                )}
                               </div>
                             </>
                           )}
@@ -196,13 +219,13 @@ export function SyntaxTree({
         </div>
       </Card>
 
-      {/* Схема связей (упрощенная) */}
       <Card className="p-4">
         <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
           <Info className="h-4 w-4" />
           Синтаксические связи:
         </h4>
         
+        <ScrollArea className="whitespace-nowrap rounded-md">
           <div className="space-y-2 pr-4 pb-2">
             {sortedTokens
               .filter(t => t.head !== null && t.dep !== 'punct')
@@ -214,8 +237,9 @@ export function SyntaxTree({
                     {head ? (
                       <>
                         <span 
-                          className="px-2 py-1 rounded whitespace-nowrap"
+                          className="px-2 py-1 rounded whitespace-nowrap max-w-[150px] truncate inline-block"
                           style={getPosStyle(head.pos)}
+                          title={head.word}
                         >
                           {head.word}
                         </span>
@@ -223,25 +247,31 @@ export function SyntaxTree({
                       </>
                     ) : (
                       <>
-                        <span className="px-2 py-1 rounded whitespace-nowrap bg-muted text-muted-foreground">
+                        <span 
+                          className="px-2 py-1 rounded whitespace-nowrap bg-muted text-muted-foreground max-w-[150px] truncate inline-block"
+                          title={typeof token.head === 'string' ? token.head : token.head?.toString()}
+                        >
                           {token.head}
                         </span>
                         <span className="text-muted-foreground">←</span>
                       </>
                     )}
                     <span 
-                      className="px-2 py-1 rounded whitespace-nowrap"
+                      className="px-2 py-1 rounded whitespace-nowrap max-w-[150px] truncate inline-block"
                       style={getPosStyle(token.pos)}
+                      title={token.word}
                     >
                       {token.word}
                     </span>
                     <Badge 
                       variant="outline"
+                      className="max-w-[180px] truncate"
                       style={{
                         backgroundColor: `${getDepColor(token.dep)}20`,
                         borderColor: getDepColor(token.dep),
                         color: getDepColor(token.dep),
                       }}
+                      title={getDepLabel(token.dep)}
                     >
                       {getDepLabel(token.dep)}
                     </Badge>
@@ -249,8 +279,7 @@ export function SyntaxTree({
                 );
               })}
           </div>
-          <ScrollBar orientation="vertical" />
-          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </Card>
     </div>
   );

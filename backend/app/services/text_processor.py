@@ -106,31 +106,56 @@ class TextProcessor:
 
     def _process_single_text(self, text: str) -> List[Dict[str, Any]]:
         doc = self.nlp(text)
-        tokens = []
-
-        token_position = 0
+        all_tokens = []
         sentence_id = 0
 
         for sent in doc.sents:
             words = [token.text for token in sent]
-
             for i, token in enumerate(sent):
                 if not token.text.strip():
                     continue
-
-                token_info = self._extract_token_info(
-                    token=token,
-                    token_position=token_position,
-                    sentence_id=sentence_id,
-                    words=words,
-                    i=i
-                )
-                tokens.append(token_info)
-                token_position += 1
-
+                left_context = " ".join(words[max(0, i - self.concordance_len):i])
+                right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
+                token_info = {
+                    "position": None,  # будет заполнено позже
+                    "sentence_id": sentence_id,
+                    "word": token.text,
+                    "lemma": token.lemma_.lower(),
+                    "pos": token.pos_,
+                    "morph": token.morph.to_dict() if token.morph else {},
+                    "dep": token.dep_,
+                    "head": token.head.text,  # оставляем для обратной совместимости
+                    "children": [child.text for child in token.children],
+                    "prefix": token.prefix_,
+                    "suffix": token.suffix_,
+                    "is_punctuation": token.is_punct,
+                    "is_stopword": token.is_stop,
+                    "left_context": left_context,
+                    "right_context": right_context,
+                    "head_position": None,
+                    "_token": token
+                }
+                all_tokens.append(token_info)
             sentence_id += 1
 
-        return tokens
+        global_pos = 0
+        index_to_global = {}
+        for token_info in all_tokens:
+            token = token_info["_token"]
+            index_to_global[token.i] = global_pos
+            token_info["position"] = global_pos
+            global_pos += 1
+
+        for token_info in all_tokens:
+            token = token_info["_token"]
+            head_token = token.head
+            if head_token == token:
+                token_info["head_position"] = None
+            else:
+                token_info["head_position"] = index_to_global[head_token.i]
+            del token_info["_token"]
+
+        return all_tokens
 
     def _process_long_text(self, text: str) -> List[Dict[str, Any]]:
         chunks = self._split_into_chunks(text)
@@ -139,67 +164,59 @@ class TextProcessor:
         global_sentence_id = 0
 
         for chunk_idx, chunk in enumerate(chunks):
-            logger.info(f"Processing chunk {chunk_idx + 1}/{len(chunks)} (length: {len(chunk)})")
+            logger.info(f"Processing chunk {chunk_idx + 1}/{len(chunks)}")
+            doc = self.nlp(chunk)
+            chunk_tokens = []
 
-            try:
-                doc = self.nlp(chunk)
+            for sent in doc.sents:
+                words = [token.text for token in sent]
+                for i, token in enumerate(sent):
+                    if not token.text.strip():
+                        continue
+                    left_context = " ".join(words[max(0, i - self.concordance_len):i])
+                    right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
+                    token_info = {
+                        "position": None,
+                        "sentence_id": global_sentence_id,
+                        "word": token.text,
+                        "lemma": token.lemma_.lower(),
+                        "pos": token.pos_,
+                        "morph": token.morph.to_dict() if token.morph else {},
+                        "dep": token.dep_,
+                        "head": token.head.text,
+                        "children": [child.text for child in token.children],
+                        "prefix": token.prefix_,
+                        "suffix": token.suffix_,
+                        "is_punctuation": token.is_punct,
+                        "is_stopword": token.is_stop,
+                        "left_context": left_context,
+                        "right_context": right_context,
+                        "head_position": None,
+                        "_token": token
+                    }
+                    chunk_tokens.append(token_info)
+                global_sentence_id += 1
 
-                for sent in doc.sents:
-                    words = [token.text for token in sent]
-                    logger.debug(f"Sentence: '{global_sentence_id}: {' '.join(words)}'")
+            local_index_to_global = {}
+            for token_info in chunk_tokens:
+                token = token_info["_token"]
+                local_index_to_global[token.i] = global_token_position
+                token_info["position"] = global_token_position
+                global_token_position += 1
 
-                    for i, token in enumerate(sent):
-                        if not token.text.strip():
-                            continue
+            for token_info in chunk_tokens:
+                token = token_info["_token"]
+                head_token = token.head
+                if head_token == token:
+                    token_info["head_position"] = None
+                else:
+                    token_info["head_position"] = local_index_to_global[head_token.i]
+                del token_info["_token"]
 
-                        token_info = self._extract_token_info(
-                            token=token,
-                            token_position=global_token_position,
-                            sentence_id=global_sentence_id,
-                            words=words,
-                            i=i
-                        )
-                        all_tokens.append(token_info)
-                        global_token_position += 1
-
-                    global_sentence_id += 1
-
-            except Exception as e:
-                logger.error(f"Error processing chunk {chunk_idx + 1}: {e}")
-                continue
+            all_tokens.extend(chunk_tokens)
 
         logger.info(f"Processed {len(all_tokens)} tokens from {len(chunks)} chunks")
         return all_tokens
-
-    def _extract_token_info(self, token, token_position: int, sentence_id: int,
-                            words: List[str], i: int) -> Dict[str, Any]:
-        left_context = " ".join(words[max(0, i - self.concordance_len):i])
-        right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
-
-        try:
-            morph_dict = token.morph.to_dict() if token.morph else {}
-        except:
-            morph_dict = {}
-
-        token_info = {
-            "position": token_position,
-            "sentence_id": sentence_id,
-            "word": token.text,
-            "lemma": token.lemma_.lower(),
-            "pos": token.pos_,
-            "morph": morph_dict,
-            "dep": token.dep_,
-            "head": token.head.text,
-            "children": [child.text for child in token.children],
-            "prefix": token.prefix_,
-            "suffix": token.suffix_,
-            "is_punctuation": token.is_punct,
-            "is_stopword": token.is_stop,
-            "left_context": left_context,
-            "right_context": right_context
-        }
-
-        return token_info
 
 
 text_processor = TextProcessor()
