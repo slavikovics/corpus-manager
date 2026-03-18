@@ -19,7 +19,14 @@ import {
   AlertCircle,
   Clock,
   XCircle,
-  FileBarChart
+  FileBarChart,
+  Network,
+  GitBranch,
+  Code2,
+  MoveRight,
+  ArrowLeftRight,
+  ScrollText,
+  Layers
 } from "lucide-react";
 import { Badge } from "app/components/ui/badge";
 
@@ -209,6 +216,69 @@ export default function HelpPage() {
                 <li>Контекст употребления</li>
                 <li>Метаданные</li>
               </ul>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-cyan-100 dark:bg-cyan-900 rounded-lg">
+              <Network className="h-6 w-6 text-cyan-600 dark:text-cyan-300" />
+            </div>
+            <h2 className="text-2xl font-semibold">Синтаксический анализ</h2>
+          </div>
+          
+          <div className="space-y-4 pl-14">
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <GitBranch className="h-4 w-4" /> Дерево зависимостей
+              </h3>
+              <p className="text-muted-foreground">
+                На странице отображается граф синтаксических связей между словами в предложении:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
+                <li><strong>Узлы</strong> - слова с указанием части речи</li>
+                <li><strong>Рёбра</strong> - синтаксические связи с подписями (подлежащее, сказуемое и т.д.)</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <Layers className="h-4 w-4" /> Таблица токенов
+              </h3>
+              <p className="text-muted-foreground">
+                Под графом расположена таблица с детальной информацией:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
+                <li><strong>Поз.</strong> - позиция слова в предложении</li>
+                <li><strong>Слово</strong> - исходная словоформа</li>
+                <li><strong>Лемма</strong> - начальная форма слова</li>
+                <li><strong>POS</strong> - часть речи</li>
+                <li><strong>Роль</strong> - синтаксическая роль (зависимость)</li>
+                <li><strong>Главное</strong> - позиция главного слова</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <Info className="h-4 w-4" /> Интерактивность
+              </h3>
+              <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
+                <li><strong>Перетаскивание</strong> - узлы графа можно перемещать для лучшего обзора</li>
+                <li><strong>Масштабирование</strong> - колесо мыши для приближения/отдаления</li>
+                <li><strong>Подсказки</strong> - при наведении на слово показывается дополнительная информация (лемма, морфология)</li>
+                <li><strong>Цветовое кодирование</strong> - части речи и связи имеют свои цвета для быстрой идентификации</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium flex items-center gap-2 mb-2">
+                <ScrollText className="h-4 w-4" /> Схема связей
+              </h3>
+              <p className="text-muted-foreground">
+                Под графом отображается упрощенная схема всех синтаксических связей в предложении в виде списка, 
+                где показаны пары слов и тип связи между ними.
+              </p>
             </div>
           </div>
         </Card>
