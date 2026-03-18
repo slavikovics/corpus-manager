@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, date
 from typing import Optional
@@ -49,6 +49,60 @@ async def generate_document_report(
         pdf_bytes = await generator.generate_document_report(doc_id)
 
         filename = f"document_{doc_id}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/document/{doc_id}/sentence/{sentence_id}")
+async def generate_sentence_report(
+        doc_id: int,
+        sentence_id: int,
+        include_context: bool = Query(False, description="Include surrounding context"),
+        context_size: int = Query(5, ge=1, le=20, description="Number of context tokens"),
+        db: AsyncSession = Depends(get_db)
+):
+    try:
+        generator = PDFReportGenerator(db)
+        pdf_bytes = await generator.generate_sentence_report(
+            doc_id=doc_id,
+            sentence_id=sentence_id,
+            include_context=include_context,
+            context_size=context_size
+        )
+
+        filename = f"document_{doc_id}_sentence_{sentence_id}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/document/{doc_id}/syntax")
+async def generate_document_syntax_report(
+        doc_id: int,
+        db: AsyncSession = Depends(get_db)
+):
+    try:
+        generator = PDFReportGenerator(db)
+        pdf_bytes = await generator.generate_document_syntax_report(doc_id)
+
+        filename = f"document_{doc_id}_syntax_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
         return Response(
             content=pdf_bytes,
