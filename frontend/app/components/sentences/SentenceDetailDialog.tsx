@@ -11,7 +11,7 @@ import { ScrollArea } from "app/components/ui/scroll-area";
 import type { SentenceDetailResponse } from "app/api/types";
 import { SyntaxTree } from "./SyntaxTree";
 import { DependencyGraph } from "./DependencyGraph";
-import { DEP_COLORS, DEP_LABELS } from "~/posTags";
+import { DEP_COLORS, DEP_LABELS, POS_COLORS, POS_LABELS } from "~/posTags";
 import {
   FileText,
   Hash,
@@ -185,9 +185,9 @@ export function SentenceDetailDialog({
               <Badge 
                 variant="outline" 
                 className="truncate max-w-[70px] block text-center"
-                title={token.pos || '-'}
+                title={ token.pos || '-'}
               >
-                {token.pos || '-'}
+                { token.pos || '-'}
               </Badge>
             </td>
             

@@ -66,7 +66,7 @@ export const DEP_COLORS: Record<string, string> = {
   'conj': '#ef4444',
   'cc': '#ef4444',
   
-  'root': '#000000',
+  'ROOT': '#f59e0b',
   'punct': '#9ca3af',
   'dep': '#9ca3af',
   'intj': '#f97316',
@@ -123,7 +123,7 @@ export const DEP_LABELS: Record<string, string> = {
   'conj': 'союзная связь',
   'cc': 'сочинит. союз',
   
-  'root': 'главное',
+  'ROOT': 'ГЛАВНОЕ',
   'punct': 'пунктуация',
   'dep': 'неопред. зависимость',
   'intj': 'междометие',

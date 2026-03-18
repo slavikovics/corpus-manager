@@ -87,6 +87,7 @@ export interface SearchResult {
   doc_id: number;
   word: string;
   lemma: string | null;  
+  sentence_id: number;
   pos: string | null;     
   left_context: string | null;   
   right_context: string | null;  

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "app/components/ui/button";
 import { Input } from "app/components/ui/input";
+import { SentenceDetailDialog } from "~/components/sentences/SentenceDetailDialog";
 import {
   Select,
   SelectContent,
@@ -12,11 +13,13 @@ import {
 } from "app/components/ui/select";
 import { Card } from "app/components/ui/card";
 import { Badge } from "app/components/ui/badge";
-import { Search, X } from "lucide-react";
+import { Search, X, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { searchApi } from "app/api/search";
 import type { SearchResponse, SearchResult } from "app/api/types";
+import type { SentenceDetailResponse } from "app/api/types";
+import { sentencesApi } from "~/api/sentences";
 import { cn } from "app/lib/utils";
 
 const SEARCH_TYPES = [
@@ -54,6 +57,28 @@ export default function SearchPage() {
   const [pageSize, setPageSize] = useState(50);
 
   const mode = detectMode(query);
+
+  const [selectedSentence, setSelectedSentence] = useState<SentenceDetailResponse | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const handleViewDetails = async (doc_id: number, sentence_id: number) => {
+    setDetailLoading(true);
+    try {
+      const detail = await sentencesApi.getSentenceDetail(doc_id, sentence_id, {
+        include_context: true,
+        context_size: 5,
+      });
+      setSelectedSentence(detail);
+      setDetailDialogOpen(true);
+    } catch (err) {
+      toast.error("Ошибка загрузки", {
+        description: "Не удалось загрузить детальную информацию о предложении",
+      });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const performSearch = useCallback(async () => {
     if (!query.trim()) {
@@ -165,6 +190,23 @@ export default function SearchPage() {
             {row.original.right_context}
           </span>
         </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Действия",
+      size: 80,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewDetails(row.original.doc_id, row.original.sentence_id);
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
       ),
     },
   ];
@@ -298,6 +340,13 @@ export default function SearchPage() {
           <p className="text-lg mb-2 text-muted-foreground">Введите запрос для поиска</p>
         </Card>
       )}
+
+      <SentenceDetailDialog
+        sentence={selectedSentence}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        loading={detailLoading}
+      />  
     </div>
   );
 }

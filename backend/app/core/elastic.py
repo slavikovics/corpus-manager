@@ -151,7 +151,7 @@ class ElasticsearchClient:
             "from": from_,
             "size": size,
             "sort": [{"doc_id": "asc"}, {"position": "asc"}],
-            "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"]
+            "_source": ["doc_id", "position", "word", "lemma", "sentence_id", "pos", "metadata", "left_context", "right_context"]
         }
 
         try:
@@ -249,7 +249,7 @@ class ElasticsearchClient:
             body = {
                 "query": query,
                 "size": 10000,
-                "_source": ["doc_id", "position", "word", "lemma", "pos", "metadata", "left_context", "right_context"],
+                "_source": ["doc_id", "position", "word", "lemma", "sentence_id", "pos", "metadata", "left_context", "right_context"],
                 "sort": [{"doc_id": "asc"}, {"position": "asc"}]
             }
             
@@ -278,6 +278,7 @@ class ElasticsearchClient:
                     "position": src["position"],
                     "word": src["word"],
                     "lemma": src.get("lemma", ""),
+                    "sentence_id": src.get("sentence_id", -1),
                     "pos": src.get("pos", ""),
                     "metadata": src.get("metadata", {}),
                     "left_context": src.get("left_context", ""),
@@ -354,6 +355,7 @@ class ElasticsearchClient:
             
             left_ctx = tokens[0].get("left_context", "")
             right_ctx = tokens[-1].get("right_context", "")
+            sentence_id = tokens[0]["sentence_id"]
             
             hit = {
                 "_index": self.index_name,
@@ -363,6 +365,7 @@ class ElasticsearchClient:
                     "doc_id": match["doc_id"],
                     "position_start": match["start_pos"],
                     "position_end": match["end_pos"],
+                    "sentence_id": sentence_id,
                     "words": [t["word"] for t in tokens],
                     "lemmas": [t["lemma"] for t in tokens],
                     "pos_tags": [t["pos"] for t in tokens],

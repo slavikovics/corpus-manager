@@ -5,6 +5,7 @@ from typing import Optional, List, Dict, Any
 class SearchResult(BaseModel):
     doc_id: int
     word: str
+    sentence_id: int
     lemma: Optional[str] = ""
     pos: Optional[str] = ""
     left_context: Optional[str] = ""
