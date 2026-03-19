@@ -266,7 +266,6 @@ export function DependencyGraph({ tokens }: DependencyGraphProps) {
           .react-flow__node:hover .react-flow__handle {
             opacity: 1;
           }
-          // Скрываем minimap и controls полностью
           .react-flow__minimap {
             display: none !important;
           }

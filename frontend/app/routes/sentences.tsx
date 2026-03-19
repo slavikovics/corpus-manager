@@ -200,12 +200,9 @@ export default function SentencesPage() {
         <h1 className="text-3xl font-bold">Предложения</h1>
       </div>
 
-      {}
       <Card className="p-4 mb-6">
         <div className="space-y-4">
-          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {}
             <div>
               <label className="text-sm font-medium mb-1 block">
                 ID документа
@@ -218,8 +215,6 @@ export default function SentencesPage() {
                 onChange={(e) => setDocId(e.target.value ? parseInt(e.target.value) : null)}
               />
             </div>
-
-            {}
             <div>
               <label className="text-sm font-medium mb-1 block">
                 Поиск по тексту
@@ -232,8 +227,6 @@ export default function SentencesPage() {
               />
             </div>
           </div>
-
-          {}
           <Button
             variant="ghost"
             size="sm"
@@ -244,7 +237,6 @@ export default function SentencesPage() {
             {showAdvancedFilters ? "Скрыть расширенные фильтры" : "Показать расширенные фильтры"}
           </Button>
 
-          {}
           {showAdvancedFilters && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
               {}
@@ -261,7 +253,6 @@ export default function SentencesPage() {
                 />
               </div>
 
-              {}
               <div>
                 <label className="text-sm font-medium mb-1 block">
                   Максимум токенов
@@ -277,7 +268,6 @@ export default function SentencesPage() {
             </div>
           )}
 
-          {}
           {hasActiveFilters && (
             <div className="flex justify-end pt-4 border-t">
               <Button
@@ -294,7 +284,6 @@ export default function SentencesPage() {
         </div>
       </Card>
 
-      {}
       <DataTable
         columns={columns}
         data={sentences}
@@ -310,7 +299,6 @@ export default function SentencesPage() {
         error={error}
       />
 
-      {}
       <SentenceDetailDialog
         sentence={selectedSentence}
         open={detailDialogOpen}

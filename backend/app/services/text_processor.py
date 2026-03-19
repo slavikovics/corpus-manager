@@ -117,14 +117,14 @@ class TextProcessor:
                 left_context = " ".join(words[max(0, i - self.concordance_len):i])
                 right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
                 token_info = {
-                    "position": None,  # будет заполнено позже
+                    "position": None,
                     "sentence_id": sentence_id,
                     "word": token.text,
                     "lemma": token.lemma_.lower(),
                     "pos": token.pos_,
                     "morph": token.morph.to_dict() if token.morph else {},
                     "dep": token.dep_,
-                    "head": token.head.text,  # оставляем для обратной совместимости
+                    "head": token.head.text,
                     "children": [child.text for child in token.children],
                     "prefix": token.prefix_,
                     "suffix": token.suffix_,
