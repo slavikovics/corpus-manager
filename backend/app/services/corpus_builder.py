@@ -379,40 +379,57 @@ class CorpusBuilder:
             raise
 
     async def populate_sentences_table(self, db: AsyncSession):
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+
         query = select(
             Token.doc_id,
             Token.sentence_id,
-            func.min(Token.position).label('start_pos'),
-            func.max(Token.position).label('end_pos'),
-            func.count(Token.position).label('token_count')
+            func.min(Token.position).label('start_position'),
+            func.max(Token.position).label('end_position'),
+            func.count(Token.position).label('token_count'),
+            func.string_agg(Token.word, ' ').label('text')
         ).where(Token.sentence_id.isnot(None)).group_by(Token.doc_id, Token.sentence_id)
 
         result = await db.execute(query)
         rows = result.all()
 
+        if not rows:
+            logger.info("No sentences to insert")
+            return
+
+        logger.info(f"Building {len(rows)} sentences")
+
+        batch_size = 1000
+        sentences_batch = []
+
         for row in rows:
-            doc_id, sentence_id, start_pos, end_pos, token_count = row
+            sentence_dict = {
+                'doc_id': row.doc_id,
+                'sentence_id': row.sentence_id,
+                'start_position': row.start_position,
+                'end_position': row.end_position,
+                'token_count': row.token_count,
+                'text': row.text or '',
+                'created_at': datetime.now()
+            }
+            sentences_batch.append(sentence_dict)
 
-            token_query = select(Token.word).where(
-                and_(
-                    Token.doc_id == doc_id,
-                    Token.sentence_id == sentence_id
+            if len(sentences_batch) >= batch_size:
+                stmt = pg_insert(Sentence).values(sentences_batch)
+                stmt = stmt.on_conflict_do_nothing(
+                    index_elements=['doc_id', 'sentence_id']
                 )
-            ).order_by(Token.position)
+                await db.execute(stmt)
+                sentences_batch = []
 
-            token_result = await db.execute(token_query)
-            words = token_result.scalars().all()
-            text = " ".join(words)
-
-            sentence = Sentence(
-                doc_id=doc_id,
-                sentence_id=sentence_id,
-                start_position=start_pos,
-                end_position=end_pos,
-                token_count=token_count,
-                text=text
+        if sentences_batch:
+            stmt = pg_insert(Sentence).values(sentences_batch)
+            stmt = stmt.on_conflict_do_nothing(
+                index_elements=['doc_id', 'sentence_id']
             )
-            db.add(sentence)
+            await db.execute(stmt)
+
+        logger.info(f"Successfully inserted {len(rows)} sentences")
 
 
 corpus_builder = CorpusBuilder()
