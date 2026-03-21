@@ -195,7 +195,6 @@ export default function SentencesPage() {
 
   return (
     <div className="container mx-auto py-10">
-      {}
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-3xl font-bold">Предложения</h1>
       </div>

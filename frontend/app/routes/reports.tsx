@@ -6,13 +6,6 @@ import { Input } from "app/components/ui/input";
 import { Label } from "app/components/ui/label";
 import { Checkbox } from "app/components/ui/checkbox";
 import { FileBarChart, PieChart, GitBranch } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "app/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "app/components/ui/tabs";
 import { Calendar } from "app/components/ui/calendar";
 import {

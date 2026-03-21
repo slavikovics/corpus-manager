@@ -1,6 +1,7 @@
 import { Button } from "app/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "app/components/ui/select";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -11,6 +12,7 @@ interface PaginationProps {
   pageSizeOptions?: number[];
   type: 'offset' | 'page'; 
 }
+
 export function Pagination({
   currentPage,
   totalPages,

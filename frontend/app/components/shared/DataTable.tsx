@@ -55,7 +55,6 @@ export function DataTable<TData, TValue>({
   }
   return (
     <div className="space-y-4">
-      {}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -113,7 +112,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {}
       <Pagination
         currentPage={pagination.currentPage}
         totalPages={totalPages}
