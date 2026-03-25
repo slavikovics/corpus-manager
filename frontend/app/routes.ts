@@ -40,5 +40,9 @@ export default [
   {
     path: "/help",
     file: "routes/help.tsx",
+  },
+  {
+    path: "/export",
+    file: "routes/export.tsx"
   }
 ] satisfies RouteConfig;

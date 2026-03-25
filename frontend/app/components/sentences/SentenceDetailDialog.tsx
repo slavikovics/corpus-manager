@@ -11,7 +11,7 @@ import { ScrollArea } from "app/components/ui/scroll-area";
 import type { SentenceDetailResponse } from "app/api/types";
 import { SyntaxTree } from "./SyntaxTree";
 import { DependencyGraph } from "./DependencyGraph";
-import { DEP_COLORS, DEP_LABELS, POS_COLORS, POS_LABELS } from "~/posTags";
+import { getDepColor, getDepLabel } from "~/posTags";
 import {
   FileText,
   Hash,
@@ -225,13 +225,3 @@ export function SentenceDetailDialog({
     </Dialog>
   );
 }
-
-const getDepColor = (dep: string | null): string => {
-  if (!dep) return '#9ca3af';
-  return DEP_COLORS[dep] || '#9ca3af';
-};
-
-const getDepLabel = (dep: string | null): string => {
-  if (!dep) return 'неизвестно';
-  return DEP_LABELS[dep] || dep;
-};

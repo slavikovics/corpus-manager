@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Node, Edge, NodeProps } from 'reactflow';
 import ReactFlow, {
   Background,
@@ -11,7 +11,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import type { TokenResponse } from '~/api';
-import { getPosStyle, getPosLabel, getDepLabel, getDepColor } from './SyntaxTree';
+import { getPosStyle, getPosLabel, getDepLabel, getDepColor } from '../../posTags';
 import { Card } from 'app/components/ui/card';
 import { Badge } from 'app/components/ui/badge';
 

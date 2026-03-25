@@ -4,15 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Card } from "app/components/ui/card";
 import { Button } from "app/components/ui/button";
 import { Input } from "app/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "app/components/ui/select";
 import { Badge } from "app/components/ui/badge";
-import { Eye, Filter, X, MessageSquare } from "lucide-react";
+import { Eye, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { SearchBar } from "app/components/shared/SearchBar";

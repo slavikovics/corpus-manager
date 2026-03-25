@@ -76,63 +76,6 @@ export const DEP_COLORS: Record<string, string> = {
   'prt': '#6b7280',
 };
 
-export const DEP_LABELS: Record<string, string> = {
-  'nsubj': 'подлежащее',
-  'nsubjpass': 'подлежащее страд.',
-  'csubj': 'подлежащее прид.',
-  'csubjpass': 'подлежащее прид. страд.',
-
-  'dobj': 'прямое дополнение',
-  'dative': 'дательный объект',
-  'oprd': 'объектный предикатив',
-  'pobj': 'объект предлога',
-  'attr': 'атрибут',
-  
-  'advmod': 'обстоятельство',
-  'advcl': 'обст. прид.',
-  'npadvmod': 'именное обст.',
-  'quantmod': 'обст. количества',
-  'agent': 'агенс',
-
-  'amod': 'определение',
-  'nmod': 'именное определение',
-  'nummod': 'числовое определение',
-  'appos': 'приложение',
-  'relcl': 'относит. прид.',
-  'acomp': 'прилаг. комплемент',
-  'compound': 'сложное слово',
-
-  'acl': 'определ. прид.',
-  'ccomp': 'прид. дополнит.',
-  'xcomp': 'открытое прид.',
-  'parataxis': 'паратаксис',
-
-  'det': 'определитель',
-  'predet': 'предопределитель',
-  'preconj': 'предсоюз',
-  'poss': 'притяжат. модиф.',
-
-  'case': 'предлог',
-  'prep': 'предложный модиф.',
-  'pcomp': 'комплемент предлога',
-  'mark': 'маркер',
-
-  'aux': 'вспом. глагол',
-  'auxpass': 'вспом. глагол страд.',
-  
-  'conj': 'союзная связь',
-  'cc': 'сочинит. союз',
-  
-  'ROOT': 'ГЛАВНОЕ',
-  'punct': 'пунктуация',
-  'dep': 'неопред. зависимость',
-  'intj': 'междометие',
-  'expl': 'эксплетив',
-  'neg': 'отрицание',
-  'meta': 'мета-модификатор',
-  'prt': 'частица',
-};
-
 export const POS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   'NOUN': { bg: '#3b82f620', text: '#3b82f6', border: '#3b82f6' },
   'VERB': { bg: '#ef444420', text: '#ef4444', border: '#ef4444' },
@@ -169,3 +112,23 @@ export const POS_LABELS: Record<string, string> = {
   'PUNCT': 'пунктуация',
   'X': 'другое',
 };
+
+export const getPosStyle = (pos: string | null) => {
+  if (!pos) return POS_COLORS['default'];
+  return POS_COLORS[pos] || POS_COLORS['default'];
+};
+
+export const getDepColor = (dep: string | null): string => {
+  if (!dep) return '#9ca3af';
+  return DEP_COLORS[dep] || '#9ca3af';
+};
+
+export const getPosLabel = (pos: string | null): string => {
+  if (!pos) return 'неизвестно';
+  return POS_LABELS[pos] || pos;
+};
+
+export const getDepLabel = (dep: string | null): string => {
+  if (!dep) return 'неизвестно'
+  return dep
+}

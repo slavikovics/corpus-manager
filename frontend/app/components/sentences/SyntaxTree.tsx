@@ -8,8 +8,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "app/components/ui/tooltip";
-import { POS_COLORS, POS_LABELS, DEP_COLORS, DEP_LABELS } from "~/posTags";
-import { ScrollArea, ScrollBar } from "app/components/ui/scroll-area";
+import { getPosStyle, getPosLabel, getDepColor, getDepLabel } from "~/posTags";
+import { ScrollArea } from "app/components/ui/scroll-area";
 import type { TokenResponse } from "app/api/types";
 import { Info } from "lucide-react";
 
@@ -18,26 +18,6 @@ interface SyntaxTreeProps {
   className?: string;
   maxHeight?: string | number;
 }
-
-export const getPosStyle = (pos: string | null) => {
-  if (!pos) return POS_COLORS['default'];
-  return POS_COLORS[pos] || POS_COLORS['default'];
-};
-
-export const getDepColor = (dep: string | null): string => {
-  if (!dep) return '#9ca3af';
-  return DEP_COLORS[dep] || '#9ca3af';
-};
-
-export const getPosLabel = (pos: string | null): string => {
-  if (!pos) return 'неизвестно';
-  return POS_LABELS[pos] || pos;
-};
-
-export const getDepLabel = (dep: string | null): string => {
-  if (!dep) return 'неизвестно';
-  return DEP_LABELS[dep] || dep;
-};
 
 export function SyntaxTree({ 
   tokens, 
@@ -166,9 +146,9 @@ export function SyntaxTree({
                               <div className="text-muted-foreground">Главное слово:</div>
                               <div 
                                 className="font-medium truncate" 
-                                title={typeof token.head === 'string' ? token.head : token.head.toString()}
+                                title={token.head ?? "неизвестно"}
                               >
-                                {typeof token.head === 'string' ? token.head : token.head}
+                                {token.head}
                               </div>
                             </>
                           )}
@@ -249,7 +229,7 @@ export function SyntaxTree({
                       <>
                         <span 
                           className="px-2 py-1 rounded whitespace-nowrap bg-muted text-muted-foreground max-w-[150px] truncate inline-block"
-                          title={typeof token.head === 'string' ? token.head : token.head?.toString()}
+                          title={token.head ?? "неизвестно"}
                         >
                           {token.head}
                         </span>
