@@ -1,5 +1,7 @@
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, ConfigDict
+
 from .document import DocumentInDB
 
 
@@ -12,6 +14,9 @@ class TokenBasicResponse(BaseModel):
     sentence_id: int
     is_punctuation: Optional[bool] = None
     is_stopword: Optional[bool] = None
+    entity_iob: Optional[str] = None
+    entity_type: Optional[str] = None
+    entity_description: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -24,6 +29,9 @@ class TokenDetailResponse(TokenBasicResponse):
     left_context: Optional[str] = None
     right_context: Optional[str] = None
     document: Optional[DocumentInDB] = None
+    entity_iob: Optional[str] = None
+    entity_type: Optional[str] = None
+    entity_description: Optional[str] = None
 
 
 class TokenListResponse(BaseModel):

@@ -1,11 +1,24 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Float, MetaData, UniqueConstraint, Boolean, \
-    ForeignKey
 import datetime
-from .config import settings
 import logging
 from enum import Enum
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
+from .config import settings
 
 logger = logging.getLogger(__name__)
 db_url = str(settings.DATABASE_URL).replace("postgresql://", "postgresql+asyncpg://")
@@ -19,7 +32,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_timeout=30,
     pool_recycle=3600,
-    pool_use_lifo=True
+    pool_use_lifo=True,
 )
 
 AsyncSessionLocal = sessionmaker(
@@ -27,7 +40,7 @@ AsyncSessionLocal = sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
     autocommit=False,
-    autoflush=False
+    autoflush=False,
 )
 
 Base = declarative_base()
@@ -55,16 +68,22 @@ class Document(Base):
     word_count = Column(Integer, default=0)
     processing_status = Column(String(50), default=ProcessingStatus.PENDING)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    updated_at = Column(
+        DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
+    )
 
-    tokens = relationship("Token", back_populates="document", cascade="all, delete-orphan")
-    sentences = relationship("Sentence", back_populates="document", cascade="all, delete-orphan")
+    tokens = relationship(
+        "Token", back_populates="document", cascade="all, delete-orphan"
+    )
+    sentences = relationship(
+        "Sentence", back_populates="document", cascade="all, delete-orphan"
+    )
 
 
 class LemmaStats(Base):
     __tablename__ = "lemma_stats"
     __table_args__ = (
-        UniqueConstraint('lemma', 'pos', name='uq_lemma_stats_lemma_pos'),
+        UniqueConstraint("lemma", "pos", name="uq_lemma_stats_lemma_pos"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -77,7 +96,7 @@ class LemmaStats(Base):
 class WordFormStats(Base):
     __tablename__ = "word_form_stats"
     __table_args__ = (
-        UniqueConstraint('word', 'pos', name='uq_word_form_stats_lemma_pos'),
+        UniqueConstraint("word", "pos", name="uq_word_form_stats_lemma_pos"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -90,10 +109,12 @@ class WordFormStats(Base):
 class DocumentLemmaStats(Base):
     __tablename__ = "document_lemma_stats"
     __table_args__ = (
-        UniqueConstraint('doc_id', 'lemma', 'pos', name='uq_doc_lemma_stats'),
+        UniqueConstraint("doc_id", "lemma", "pos", name="uq_doc_lemma_stats"),
     )
 
-    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True)
+    doc_id = Column(
+        Integer, ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
     lemma = Column(String(255), primary_key=True)
     pos = Column(String(50), primary_key=True)
     frequency = Column(Integer, default=0)
@@ -102,10 +123,12 @@ class DocumentLemmaStats(Base):
 class DocumentWordFormStats(Base):
     __tablename__ = "document_word_form_stats"
     __table_args__ = (
-        UniqueConstraint('doc_id', 'word', 'pos', name='uq_doc_word_form_stats'),
+        UniqueConstraint("doc_id", "word", "pos", name="uq_doc_word_form_stats"),
     )
 
-    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True)
+    doc_id = Column(
+        Integer, ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
     word = Column(String(255), primary_key=True)
     pos = Column(String(50), primary_key=True)
     frequency = Column(Integer, default=0)
@@ -113,11 +136,15 @@ class DocumentWordFormStats(Base):
 
 class Token(Base):
     __tablename__ = "tokens"
-    __table_args__ = (
-        UniqueConstraint('doc_id', 'position', name='uq_doc_position'),
-    )
+    __table_args__ = (UniqueConstraint("doc_id", "position", name="uq_doc_position"),)
 
-    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), primary_key=True, nullable=False, index=True)
+    doc_id = Column(
+        Integer,
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+        index=True,
+    )
     position = Column(Integer, primary_key=True, index=True)
     sentence_id = Column(Integer, index=True)
     word = Column(String(255))
@@ -132,20 +159,32 @@ class Token(Base):
     left_context = Column(String(510), nullable=True)
     right_context = Column(String(510), nullable=True)
 
+    entity_iob = Column(String(1), nullable=True)
+    entity_type = Column(String(50), nullable=True)
+    entity_description = Column(Text, nullable=True)
+
     document = relationship("Document", back_populates="tokens")
-    sentence = relationship("Sentence", back_populates="tokens",
-                            foreign_keys="[Token.doc_id, Token.sentence_id]",
-                            primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)")
+    sentence = relationship(
+        "Sentence",
+        back_populates="tokens",
+        foreign_keys="[Token.doc_id, Token.sentence_id]",
+        primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)",
+    )
 
 
 class Sentence(Base):
     __tablename__ = "sentences"
     __table_args__ = (
-        UniqueConstraint('doc_id', 'sentence_id', name='uq_doc_sentence'),
+        UniqueConstraint("doc_id", "sentence_id", name="uq_doc_sentence"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
-    doc_id = Column(Integer, ForeignKey('documents.id', ondelete='CASCADE'), nullable=False, index=True)
+    doc_id = Column(
+        Integer,
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     sentence_id = Column(Integer, nullable=False, index=True)
     start_position = Column(Integer, nullable=False)
     end_position = Column(Integer, nullable=False)
@@ -154,9 +193,12 @@ class Sentence(Base):
     created_at = Column(DateTime, default=datetime.datetime.now())
 
     document = relationship("Document", back_populates="sentences")
-    tokens = relationship("Token", back_populates="sentence",
-                          foreign_keys="[Token.doc_id, Token.sentence_id]",
-                          primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)")
+    tokens = relationship(
+        "Token",
+        back_populates="sentence",
+        foreign_keys="[Token.doc_id, Token.sentence_id]",
+        primaryjoin="and_(Token.doc_id == Sentence.doc_id, Token.sentence_id == Sentence.sentence_id)",
+    )
 
 
 async def get_db() -> AsyncSession:
@@ -186,4 +228,6 @@ class DatabaseSession:
 
 async def check_pool_status():
     pool = engine.pool
-    logger.info(f"Pool status: size={pool.size()}, checked_in={pool.checkedin()}, overflow={pool.overflow()}")
+    logger.info(
+        f"Pool status: size={pool.size()}, checked_in={pool.checkedin()}, overflow={pool.overflow()}"
+    )

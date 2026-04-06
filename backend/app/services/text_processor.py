@@ -1,6 +1,8 @@
-import spacy
-from typing import List, Dict, Any, Generator, Tuple, Optional
 import logging
+from typing import Any, Dict, Generator, List, Optional, Tuple
+
+import spacy
+
 from ..core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -24,7 +26,9 @@ class TextProcessor:
             if "sentencizer" not in self.nlp.pipe_names:
                 self.nlp.add_pipe("sentencizer")
 
-            logger.info(f"spaCy model loaded successfully with max_length={self.max_length}")
+            logger.info(
+                f"spaCy model loaded successfully with max_length={self.max_length}"
+            )
 
         except OSError:
             logger.warning(f"Model {self.model_name} not found. Downloading...")
@@ -33,19 +37,21 @@ class TextProcessor:
             self.nlp.max_length = self.max_length
 
     def _split_into_chunks(self, text: str) -> List[str]:
-        clean_text = text.replace('\x00', '')
+        clean_text = text.replace("\x00", "")
 
         if len(clean_text) <= self.chunk_size:
             return [clean_text]
 
-        logger.info(f"Splitting text of length {len(clean_text)} into chunks of max {self.chunk_size} chars")
+        logger.info(
+            f"Splitting text of length {len(clean_text)} into chunks of max {self.chunk_size} chars"
+        )
 
-        text_for_splitting = clean_text.replace('\n', ' ').replace('\r', ' ')
+        text_for_splitting = clean_text.replace("\n", " ").replace("\r", " ")
 
         sentences = []
-        for sent in text_for_splitting.split('. '):
+        for sent in text_for_splitting.split(". "):
             if sent:
-                sentences.append(sent + '.')
+                sentences.append(sent + ".")
 
         chunks = []
         current_chunk = []
@@ -56,7 +62,7 @@ class TextProcessor:
 
             if sent_length > self.chunk_size:
                 if current_chunk:
-                    chunks.append(' '.join(current_chunk))
+                    chunks.append(" ".join(current_chunk))
                     current_chunk = []
                     current_length = 0
 
@@ -67,7 +73,7 @@ class TextProcessor:
                 for word in words:
                     word_len = len(word) + 1
                     if temp_length + word_len > self.chunk_size:
-                        chunks.append(' '.join(temp_chunk))
+                        chunks.append(" ".join(temp_chunk))
                         temp_chunk = [word]
                         temp_length = word_len
                     else:
@@ -75,10 +81,10 @@ class TextProcessor:
                         temp_length += word_len
 
                 if temp_chunk:
-                    chunks.append(' '.join(temp_chunk))
+                    chunks.append(" ".join(temp_chunk))
 
             elif current_length + sent_length > self.chunk_size:
-                chunks.append(' '.join(current_chunk))
+                chunks.append(" ".join(current_chunk))
                 current_chunk = [sentence]
                 current_length = sent_length
             else:
@@ -86,7 +92,7 @@ class TextProcessor:
                 current_length += sent_length
 
         if current_chunk:
-            chunks.append(' '.join(current_chunk))
+            chunks.append(" ".join(current_chunk))
 
         logger.info(f"Text split into {len(chunks)} chunks")
         return chunks
@@ -95,11 +101,12 @@ class TextProcessor:
         if not self.nlp:
             raise RuntimeError("spaCy model not initialized")
 
-        clean_text = text.replace('\x00', '')
+        clean_text = text.replace("\x00", "")
 
         if len(clean_text) > self.max_length:
             logger.warning(
-                f"Text length ({len(clean_text)}) exceeds spaCy limit ({self.max_length}). Splitting into chunks...")
+                f"Text length ({len(clean_text)}) exceeds spaCy limit ({self.max_length}). Splitting into chunks..."
+            )
             return self._process_long_text(clean_text)
         else:
             return self._process_single_text(clean_text)
@@ -114,8 +121,10 @@ class TextProcessor:
             for i, token in enumerate(sent):
                 if not token.text.strip():
                     continue
-                left_context = " ".join(words[max(0, i - self.concordance_len):i])
-                right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
+                left_context = " ".join(words[max(0, i - self.concordance_len) : i])
+                right_context = " ".join(
+                    words[i + 1 : min(len(words), i + 1 + self.concordance_len)]
+                )
                 token_info = {
                     "position": None,
                     "sentence_id": sentence_id,
@@ -133,7 +142,12 @@ class TextProcessor:
                     "left_context": left_context,
                     "right_context": right_context,
                     "head_position": None,
-                    "_token": token
+                    "_token": token,
+                    "entity_type": token.ent_type_ if token.ent_iob_ != "O" else None,
+                    "entity_iob": token.ent_iob_,
+                    "entity_description": str(spacy.explain(token.ent_type_))
+                    if token.ent_iob_ != "O"
+                    else None,
                 }
                 all_tokens.append(token_info)
             sentence_id += 1
@@ -173,8 +187,10 @@ class TextProcessor:
                 for i, token in enumerate(sent):
                     if not token.text.strip():
                         continue
-                    left_context = " ".join(words[max(0, i - self.concordance_len):i])
-                    right_context = " ".join(words[i + 1:min(len(words), i + 1 + self.concordance_len)])
+                    left_context = " ".join(words[max(0, i - self.concordance_len) : i])
+                    right_context = " ".join(
+                        words[i + 1 : min(len(words), i + 1 + self.concordance_len)]
+                    )
                     token_info = {
                         "position": None,
                         "sentence_id": global_sentence_id,
@@ -192,7 +208,14 @@ class TextProcessor:
                         "left_context": left_context,
                         "right_context": right_context,
                         "head_position": None,
-                        "_token": token
+                        "_token": token,
+                        "entity_type": token.ent_type_
+                        if token.ent_iob_ != "O"
+                        else None,
+                        "entity_iob": token.ent_iob_,
+                        "entity_description": str(spacy.explain(token.ent_type_))
+                        if token.ent_iob_ != "O"
+                        else None,
                     }
                     chunk_tokens.append(token_info)
                 global_sentence_id += 1

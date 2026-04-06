@@ -8,7 +8,7 @@ export interface DocumentResponse {
   processing_status: string;
   file_type: string;
   word_count: number;
-  created_at: string;  
+  created_at: string;
   updated_at: string;
 }
 
@@ -29,16 +29,15 @@ export interface LemmaStatsListResponse {
 
 export interface LemmaStatsUpdate {
   total_frequency?: number | null;
-  last_updated?: string | null;  
+  last_updated?: string | null;
 }
 
 export interface WordFormStatsResponse {
   word: string;
   pos: string | null;
-  total_frequency: number;  
+  total_frequency: number;
   id: number;
-  last_updated: string;  
-
+  last_updated: string;
 }
 
 export interface WordFormStatsListResponse {
@@ -57,7 +56,7 @@ export interface DocumentLemmaStatsResponse {
   doc_id: number;
   lemma: string;
   pos: string | null;
-  frequency: number;  
+  frequency: number;
   tfidf: number | null;
 }
 
@@ -72,7 +71,7 @@ export interface DocumentWordFormStatsResponse {
   doc_id: number;
   word: string;
   pos: string | null;
-  frequency: number;  
+  frequency: number;
   tfidf: number | null;
 }
 
@@ -86,13 +85,13 @@ export interface DocumentWordFormStatsListResponse {
 export interface SearchResult {
   doc_id: number;
   word: string;
-  lemma: string | null;  
+  lemma: string | null;
   sentence_id: number;
-  pos: string | null;     
-  left_context: string | null;   
-  right_context: string | null;  
-  metadata: Record<string, any> | null;  
-  score: number | null;  
+  pos: string | null;
+  left_context: string | null;
+  right_context: string | null;
+  metadata: Record<string, any> | null;
+  score: number | null;
   position_start: number | null;
   position_end: number | null;
 }
@@ -142,14 +141,17 @@ export interface TokenResponse {
   word: string;
   lemma: string;
   pos: string | null;
-  tag: string | null;  
-  dep: string | null;  
-  ner: string | null;  
-  morph: Record<string, string> | null;  
+  tag: string | null;
+  dep: string | null;
+  ner: string | null;
+  morph: Record<string, string> | null;
   is_punctuation: boolean;
   is_stopword: boolean;
   head: string | null;
   head_position: number | null;
+  entity_iob: string | null;
+  entity_type: string | null;
+  entity_description: string | null;
 }
 
 export interface TokenListResponse {
@@ -160,9 +162,9 @@ export interface TokenListResponse {
 }
 
 export interface TokenDetailResponse extends TokenResponse {
-  left_context: string;  
-  right_context: string;  
-  children_positions: number[];  
+  left_context: string;
+  right_context: string;
+  children_positions: number[];
   metadata: Record<string, any> | null;
   document: DocumentResponse | null;
 }
