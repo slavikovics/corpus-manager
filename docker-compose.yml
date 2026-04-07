@@ -75,6 +75,7 @@ services:
       - UPLOAD_DIR=/uploads
       - SPACY_MODEL=en_core_web_md
       - BATCH_SIZE=1000
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     ports:
       - "8000:8000"
     volumes:

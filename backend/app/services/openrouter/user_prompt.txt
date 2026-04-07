@@ -1,0 +1,212 @@
+Analyze the sentence according to the rules in the system prompt.
+
+Here are examples of correct analysis:
+
+=== EXAMPLE 1 (verb with 5 valences: rent) ===
+Sentence: "John rented a cottage from Mary for $500 per month for a year"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "John",
+    "object": "a cottage",
+    "counterpart": "Mary",
+    "price": "$500 per month",
+    "duration": "for a year"
+  },
+  "valency_model": {
+    "verb": "rent",
+    "mandatory": ["subject", "object"],
+    "optional": ["counterpart", "price", "duration", "location", "time"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "rent",
+    "arguments": {"subject": "John", "object": "cottage", "counterpart": "Mary"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "subject: human, object: physical property, counterpart: human — all compatible"
+  }
+}
+
+=== EXAMPLE 2 (lexical functions: Magn, Caus, S2) ===
+Sentence: "His words caused my deep indignation"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "his words",
+    "object": "my deep indignation",
+    "cause": "his words"
+  },
+  "valency_model": {
+    "verb": "cause",
+    "mandatory": ["subject", "object"],
+    "optional": ["manner", "time", "location"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [
+    {"function": "Magn", "marker": "deep", "target": "indignation", "description": "very high degree ← deep indignation"},
+    {"function": "Caus", "marker": "caused", "target": "indignation", "description": "causative: words → cause → indignation"},
+    {"function": "S2", "marker": "words", "target": "say", "description": "second actant: what is said ← words"}
+  ],
+  "deep_syntactic_structure": {
+    "predicate": "cause",
+    "arguments": {"subject": {"lexeme": "say", "surface": "words"}, "object": "indignation"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "Figurative meaning: words as cause — acceptable"
+  }
+}
+
+=== EXAMPLE 3 (passive voice — semantic roles preserved) ===
+Sentence: "The ball was thrown by John"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "John",
+    "object": "the ball"
+  },
+  "valency_model": {
+    "verb": "throw",
+    "mandatory": ["subject", "object"],
+    "optional": ["instrument", "location", "end point", "time"],
+    "separable": true,
+    "syntactic_voice": "passive"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "throw",
+    "arguments": {"subject": "John", "object": "ball"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "Passive voice does not change semantic roles: John ← subject"
+  }
+}
+
+=== EXAMPLE 4 (multiple optional valences: instrument + location + time) ===
+Sentence: "She painted the wall with a roller yesterday in the garage"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "She",
+    "object": "the wall",
+    "instrument": "a roller",
+    "time": "yesterday",
+    "location": "the garage"
+  },
+  "valency_model": {
+    "verb": "paint",
+    "mandatory": ["subject", "object"],
+    "optional": ["instrument", "location", "time", "manner", "result"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "paint",
+    "arguments": {"subject": "she", "object": "wall", "instrument": "roller"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "All actants compatible: human → paint → wall with tool at place and time"
+  }
+}
+
+=== EXAMPLE 5 (inseparable valences: comparison) ===
+Sentence: "He compared the results with the baseline"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "He",
+    "object": "the results",
+    "counterpart": "the baseline"
+  },
+  "valency_model": {
+    "verb": "compare",
+    "mandatory": ["subject", "object", "counterpart"],
+    "optional": ["manner", "instrument", "time"],
+    "separable": false,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "compare",
+    "arguments": {"subject": "he", "object": "results", "counterpart": "baseline"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "object and counterpart are inseparable: cannot compare X → with Y omitting either"
+  }
+}
+
+=== EXAMPLE 6 (source + end point + time + instrument) ===
+Sentence: "She sent the package from Boston to New York via FedEx yesterday"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "She",
+    "object": "the package",
+    "instrument": "FedEx",
+    "source": "Boston",
+    "end point": "New York",
+    "time": "yesterday"
+  },
+  "valency_model": {
+    "verb": "send",
+    "mandatory": ["subject", "object", "end point"],
+    "optional": ["source", "instrument", "time", "manner"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "send",
+    "arguments": {"subject": "she", "object": "package", "source": "Boston", "end point": "New York"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "source → Boston, end point → New York — clear trajectory"
+  }
+}
+
+=== EXAMPLE 7 (result valence) ===
+Sentence: "He painted the fence red"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "He",
+    "object": "the fence",
+    "result": "red"
+  },
+  "valency_model": {
+    "verb": "paint",
+    "mandatory": ["subject", "object"],
+    "optional": ["instrument", "location", "time", "manner", "result"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [],
+  "deep_syntactic_structure": {
+    "predicate": "paint",
+    "arguments": {"subject": "he", "object": "fence", "result": "red"}
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "result ← red: the fence becomes red"
+  }
+}
+
+=== NOW ANALYZE THE FOLLOWING SENTENCE ===
+Sentence: {sentence}

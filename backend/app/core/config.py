@@ -10,10 +10,9 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
     SECRET_KEY: str = "dev-secret-key-change-in-production"
-    DATABASE_URL: PostgresDsn = (
-        "postgresql://corpus:corpus_password@postgres:5432/corpus_db"
-    )
-
+    DATABASE_URL: PostgresDsn = "postgresql://corpus:corpus_password@postgres:5432/corpus_db"
+    OPENROUTER_API_KEY: Optional[str] = None
+    
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def validate_database_url(cls, v):
