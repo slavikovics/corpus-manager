@@ -7,4 +7,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 5173
-CMD ["npx", "react-router", "dev", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev"]
+#CMD ["npx", "react-router", "dev", "--host", "0.0.0.0"]

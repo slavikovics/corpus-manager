@@ -1,72 +1,119 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Any
+from typing_extensions import Literal
 
 
 class SemanticValences(BaseModel):
     """25 семантических валентностей"""
-    subject: Optional[str] = None          # 1. субъект
-    counterpart: Optional[str] = None      # 2. контрагент
-    head: Optional[str] = None             # 3. глава
-    object: Optional[str] = None           # 4. объект
-    content: Optional[str] = None          # 5. содержание
-    addressee: Optional[str] = None        # 6. адресат
-    recipient: Optional[str] = None        # 7. получатель
-    mediator: Optional[str] = None         # 8. посредник
-    source: Optional[str] = None           # 9. источник
-    location: Optional[str] = None         # 10. место
-    starting_point: Optional[str] = None   # 11. начальная точка
-    end_point: Optional[str] = None        # 12. конечная точка
-    route: Optional[str] = None            # 13. маршрут
-    medium: Optional[str] = None           # 14. средство
-    instrument: Optional[str] = None       # 15. инструмент
-    manner: Optional[str] = None           # 16. способ
-    condition: Optional[str] = None        # 17. условие
-    motivation: Optional[str] = None       # 18. мотивировка
-    cause: Optional[str] = None            # 19. причина
-    result: Optional[str] = None           # 20. результат
-    purpose: Optional[str] = None          # 21. цель
-    aspect: Optional[str] = None           # 22. аспект
-    quantity: Optional[str] = None         # 23. количество
-    duration: Optional[str] = None         # 24. срок
-    time: Optional[str] = None             # 25. время
+    # Make ALL fields required (they can still be empty strings or null)
+    subject: Optional[str] = Field(None)
+    counterpart: Optional[str] = Field(None)
+    head: Optional[str] = Field(None)
+    object: Optional[str] = Field(None)
+    content: Optional[str] = Field(None)
+    addressee: Optional[str] = Field(None)
+    recipient: Optional[str] = Field(None)
+    mediator: Optional[str] = Field(None)
+    source: Optional[str] = Field(None)
+    location: Optional[str] = Field(None)
+    starting_point: Optional[str] = Field(None)
+    end_point: Optional[str] = Field(None)
+    route: Optional[str] = Field(None)
+    medium: Optional[str] = Field(None)
+    instrument: Optional[str] = Field(None)
+    manner: Optional[str] = Field(None)
+    condition: Optional[str] = Field(None)
+    motivation: Optional[str] = Field(None)
+    cause: Optional[str] = Field(None)
+    result: Optional[str] = Field(None)
+    purpose: Optional[str] = Field(None)
+    aspect: Optional[str] = Field(None)
+    quantity: Optional[str] = Field(None)
+    duration: Optional[str] = Field(None)
+    time: Optional[str] = Field(None)
+    
+    class Config:
+        extra = "forbid"
+        # This ensures all fields are in required
+        schema_extra = {
+            "required": [  # Explicitly list all 25 fields
+                "subject", "counterpart", "head", "object", "content",
+                "addressee", "recipient", "mediator", "source", "location",
+                "starting_point", "end_point", "route", "medium", "instrument",
+                "manner", "condition", "motivation", "cause", "result",
+                "purpose", "aspect", "quantity", "duration", "time"
+            ]
+        }
 
 
 class LexicalFunction(BaseModel):
-    """Лексическая функция"""
-    function: str      # Magn, Caus, Anti, S0, S1, S2, Oper1, Oper2, Func, Labor, Incep, Fin, Real
-    marker: str        # слово, выражающее функцию
-    target: str        # целевое слово
-    description: str   # описание
+    function: str = Field(...)
+    marker: str = Field(...)
+    target: str = Field(...)
+    description: str = Field(...)
+    
+    class Config:
+        extra = "forbid"
+        schema_extra = {
+            "required": ["function", "marker", "target", "description"]
+        }
 
 
 class ValencyModel(BaseModel):
-    """Модель управления слова"""
-    verb: str
-    mandatory: List[str] = []
-    optional: List[str] = []
-    separable: bool = True
-    syntactic_voice: str = "active"  # active / passive
+    verb: str = Field(...)
+    mandatory: List[str] = Field(default_factory=list)
+    optional: List[str] = Field(default_factory=list)
+    separable: bool = Field(True)
+    syntactic_voice: str = Field("active")
+    
+    class Config:
+        extra = "forbid"
+        schema_extra = {
+            "required": ["verb", "mandatory", "optional", "separable", "syntactic_voice"]
+        }
 
 
 class DeepSyntacticStructure(BaseModel):
-    """Глубинно-синтаксическая структура"""
-    predicate: str
-    arguments: dict = {}
-    syntactic_realization: Optional[str] = None
+    predicate: str = Field(...)
+    arguments: Dict[str, str] = Field(default_factory=dict)
+    syntactic_realization: Optional[str] = Field(None)
+    
+    class Config:
+        extra = "forbid"
+        schema_extra = {
+            "required": ["predicate", "arguments", "syntactic_realization"]
+        }
 
 
 class SemanticAgreement(BaseModel):
-    """Семантическое согласование"""
-    consistent: bool
-    violations: List[str] = []
-    notes: str = ""
+    consistent: bool = Field(...)
+    violations: List[str] = Field(default_factory=list)
+    notes: str = Field("")
+    
+    class Config:
+        extra = "forbid"
+        schema_extra = {
+            "required": ["consistent", "violations", "notes"]
+        }
 
 
 class SemanticAnalysisResponse(BaseModel):
-    """Полный ответ семантико-синтаксического анализа"""
-    sentence: str
-    semantic_valences: SemanticValences = SemanticValences()
-    valency_model: ValencyModel
-    lexical_functions: List[LexicalFunction] = []
-    deep_syntactic_structure: DeepSyntacticStructure
-    semantic_agreement: SemanticAgreement
+    sentence: str = Field(...)
+    semantic_valences: SemanticValences = Field(default_factory=SemanticValences)
+    valency_model: ValencyModel = Field(...)
+    lexical_functions: List[LexicalFunction] = Field(default_factory=list)
+    deep_syntactic_structure: DeepSyntacticStructure = Field(...)
+    semantic_agreement: SemanticAgreement = Field(...)
+    
+    class Config:
+        extra = "forbid"
+        schema_extra = {
+            "required": [
+                "sentence", 
+                "semantic_valences", 
+                "valency_model", 
+                "lexical_functions", 
+                "deep_syntactic_structure", 
+                "semantic_agreement"
+            ]
+        }

@@ -8,6 +8,7 @@ from enum import Enum
 from ...models.semantics import SemanticAnalysisResponse
 from ...core.config import settings
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,14 @@ class OpenRouterService:
         }
 
     async def analyze_with_default_prompts(self, sentence: str) -> SemanticAnalysisResponse:
+        path = os.path.dirname(os.path.abspath(__file__))
         try:
             SYSTEM_PROMPT = None
-            with open('system_prompt.txt') as file:
+            with open(os.path.join(path, 'system_prompt.txt')) as file:
                 SYSTEM_PROMPT = file.read()
 
             USER_PROMPT = None
-            with open('user_prompt.txt') as file:
+            with open(os.path.join(path, 'user_prompt.txt')) as file:
                 USER_PROMPT = file.read()
 
             if not SYSTEM_PROMPT or not USER_PROMPT:
@@ -63,7 +65,8 @@ class OpenRouterService:
         temperature: float = 0.1,
         max_tokens: int = 2000
     ) -> SemanticAnalysisResponse:
-        formatted_user_prompt = user_prompt.format(sentence=sentence)
+        #formatted_user_prompt = user_prompt.format(sentence=sentence)
+        formatted_user_prompt = user_prompt + f"Sentence: {sentence}"
         json_schema = SemanticAnalysisResponse.model_json_schema()
 
         logger.info(f'Formatted user prompt: \n{formatted_user_prompt}')

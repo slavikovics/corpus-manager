@@ -209,4 +209,3 @@ Analysis:
 }
 
 === NOW ANALYZE THE FOLLOWING SENTENCE ===
-Sentence: {sentence}
