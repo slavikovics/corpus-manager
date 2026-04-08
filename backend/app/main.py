@@ -64,7 +64,7 @@ app.include_router(token.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(sentence.router, prefix="/api")
 app.include_router(db_export.router, prefix="/api")
-app.include_router(semantics.router, prefix="/semantics")
+app.include_router(semantics.router, prefix="/api")
 
 
 @app.get("/")

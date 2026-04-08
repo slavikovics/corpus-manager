@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import aiohttp
+import traceback
 from typing import Optional, List
 from pydantic import BaseModel, ValidationError
 from enum import Enum
@@ -44,9 +45,10 @@ class OpenRouterService:
             if not SYSTEM_PROMPT or not USER_PROMPT:
                 raise Exception('Prompt was None')
 
-        except:
-            logger.error(f'Failed to load prompts')
-            raise Exception('Failed to load prompts')
+        except Exception as e:
+            logger.error(f'Failed to load prompts: {e}')
+            logger.error(traceback.format_exc())
+            raise Exception('Failed to load prompts') from e
     
         result = await self.analyze(
             sentence=sentence,
@@ -65,7 +67,6 @@ class OpenRouterService:
         temperature: float = 0.1,
         max_tokens: int = 2000
     ) -> SemanticAnalysisResponse:
-        #formatted_user_prompt = user_prompt.format(sentence=sentence)
         formatted_user_prompt = user_prompt + f"Sentence: {sentence}"
         json_schema = SemanticAnalysisResponse.model_json_schema()
 
@@ -81,7 +82,7 @@ class OpenRouterService:
             ],
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "response_format": {
+            "response_format": {                
                 "type": "json_schema",
                 "json_schema": {
                     "name": "semantic_analysis",
@@ -90,30 +91,46 @@ class OpenRouterService:
                 }
             }
         }
+
+        logger.info(payload)
         
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions",
-                headers=self.headers,
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=self.timeout)
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    logger.error(f'Failed to send request to OpenRouter. API Error {response.status}: {error_text}')
-                    raise Exception(f"API Error {response.status}: {error_text}")
-                
-                data = await response.json()
-                content = data["choices"][0]["message"]["content"]
-                
-                try:
-                    result = SemanticAnalysisResponse.model_validate_json(content)
-                    return result
-                
-                except ValidationError as e:
-                    import re
-                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
-                    if json_match:
-                        result = SemanticAnalysisResponse.model_validate_json(json_match.group())
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=self.headers,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=self.timeout)
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f'OpenRouter API Error {response.status}: {error_text}')
+                        raise Exception(f"API Error {response.status}: {error_text}\nResponse body: {error_text}")
+                    
+                    data = await response.json()
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    logger.info(f"OpenRouter raw response: {content}")
+                    
+                    try:
+                        result = SemanticAnalysisResponse.model_validate_json(content)
                         return result
-                    raise ValueError(f"Failed to parse response: {e}\nRaw: {content[:500]}")
+                    
+                    except ValidationError as e:
+                        
+                        import re
+                        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                        if json_match:
+                            try:
+                                result = SemanticAnalysisResponse.model_validate_json(json_match.group())
+                                return result
+                            except ValidationError as e2:
+                                logger.error(f"Failed to parse even matched JSON. Original: {content[:500]}")
+                                logger.error(f"Matched: {json_match.group()[:500]}")
+                                raise ValueError(f"Failed to parse response even after JSON extraction. Original error: {e}\nRaw content: {content[:500]}") from e2
+                        raise ValueError(f"Failed to parse response: {e}\nRaw content: {content[:500]}")
+                        
+        except Exception as e:
+            logger.error(f"Exception in analyze method: {type(e).__name__}: {e}")
+            logger.error(f"Full traceback:\n{traceback.format_exc()}")
+            raise

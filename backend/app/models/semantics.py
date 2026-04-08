@@ -1,11 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional
 from typing_extensions import Literal
 
 
 class SemanticValences(BaseModel):
-    """25 семантических валентностей"""
-    # Make ALL fields required (they can still be empty strings or null)
     subject: Optional[str] = Field(None)
     counterpart: Optional[str] = Field(None)
     head: Optional[str] = Field(None)
@@ -34,16 +32,6 @@ class SemanticValences(BaseModel):
     
     class Config:
         extra = "forbid"
-        # This ensures all fields are in required
-        schema_extra = {
-            "required": [  # Explicitly list all 25 fields
-                "subject", "counterpart", "head", "object", "content",
-                "addressee", "recipient", "mediator", "source", "location",
-                "starting_point", "end_point", "route", "medium", "instrument",
-                "manner", "condition", "motivation", "cause", "result",
-                "purpose", "aspect", "quantity", "duration", "time"
-            ]
-        }
 
 
 class LexicalFunction(BaseModel):
@@ -54,9 +42,6 @@ class LexicalFunction(BaseModel):
     
     class Config:
         extra = "forbid"
-        schema_extra = {
-            "required": ["function", "marker", "target", "description"]
-        }
 
 
 class ValencyModel(BaseModel):
@@ -64,13 +49,10 @@ class ValencyModel(BaseModel):
     mandatory: List[str] = Field(default_factory=list)
     optional: List[str] = Field(default_factory=list)
     separable: bool = Field(True)
-    syntactic_voice: str = Field("active")
+    syntactic_voice: Literal["active", "passive"] = Field("active")
     
     class Config:
         extra = "forbid"
-        schema_extra = {
-            "required": ["verb", "mandatory", "optional", "separable", "syntactic_voice"]
-        }
 
 
 class DeepSyntacticStructure(BaseModel):
@@ -80,9 +62,6 @@ class DeepSyntacticStructure(BaseModel):
     
     class Config:
         extra = "forbid"
-        schema_extra = {
-            "required": ["predicate", "arguments", "syntactic_realization"]
-        }
 
 
 class SemanticAgreement(BaseModel):
@@ -92,9 +71,6 @@ class SemanticAgreement(BaseModel):
     
     class Config:
         extra = "forbid"
-        schema_extra = {
-            "required": ["consistent", "violations", "notes"]
-        }
 
 
 class SemanticAnalysisResponse(BaseModel):
@@ -107,13 +83,3 @@ class SemanticAnalysisResponse(BaseModel):
     
     class Config:
         extra = "forbid"
-        schema_extra = {
-            "required": [
-                "sentence", 
-                "semantic_valences", 
-                "valency_model", 
-                "lexical_functions", 
-                "deep_syntactic_structure", 
-                "semantic_agreement"
-            ]
-        }

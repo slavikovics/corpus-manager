@@ -81,6 +81,13 @@ services:
     volumes:
       - ./backend:/app
       - ./uploads:/uploads
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 1.1.1.1
+    links:
+      - postgres
+      - elasticsearch
     networks:
       - corpus-network
     depends_on:
