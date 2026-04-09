@@ -201,6 +201,35 @@ class Sentence(Base):
     )
 
 
+class SentenceSemanticAnalysis(Base):
+    __tablename__ = "sentence_semantic_analysis"
+    __table_args__ = (
+        UniqueConstraint("doc_id", "sentence_id", name="uq_sentence_semantic"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    doc_id = Column(
+        Integer,
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sentence_id = Column(Integer, nullable=False, index=True)
+
+    analysis = Column(JSON, nullable=False)
+
+    model_version = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+    )
+
+    document = relationship("Document")
+
+
 async def get_db() -> AsyncSession:
     session = AsyncSessionLocal()
     try:
