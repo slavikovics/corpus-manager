@@ -5,6 +5,7 @@ import type {
   TokenPosListResponse,
   DocumentTokenStats,
 } from "./types";
+
 export interface GetTokensParams {
   skip?: number;
   limit?: number;
@@ -19,6 +20,7 @@ export interface GetTokensParams {
   entity_type?: string | null;
   entity_description?: string | null;
 }
+
 export const tokensApi = {
   getTokens: async (
     params: GetTokensParams = {},
@@ -37,6 +39,7 @@ export const tokensApi = {
       entity_type = null,
       entity_description = null,
     } = params;
+
     const response = await apiClient.get<TokenListResponse>("api/tokens/", {
       params: {
         skip,
@@ -55,6 +58,7 @@ export const tokensApi = {
     });
     return response.data;
   },
+
   getTokenDetail: async (
     doc_id: number,
     position: number,
@@ -64,11 +68,13 @@ export const tokensApi = {
     );
     return response.data;
   },
+
   getPosStats: async (): Promise<TokenPosListResponse> => {
     const response =
       await apiClient.get<TokenPosListResponse>("api/tokens/pos");
     return response.data;
   },
+
   getDocumentTokenStats: async (
     doc_id: number,
   ): Promise<DocumentTokenStats> => {

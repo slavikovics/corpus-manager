@@ -14,13 +14,6 @@ import { Checkbox } from "app/components/ui/checkbox";
 import { Label } from "app/components/ui/label";
 import { Badge } from "app/components/ui/badge";
 import { Card } from "app/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "app/components/ui/dialog";
 import { Eye, X, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
@@ -39,7 +32,7 @@ export default function TokensPage() {
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(50);
   const [docId, setDocId] = useState<number | null>(() => {
-    const param = searchParams.get('doc_id');
+    const param = searchParams.get("doc_id");
     return param ? parseInt(param) : null;
   });
   const [pos, setPos] = useState<string | null>(null);
@@ -48,9 +41,11 @@ export default function TokensPage() {
   const [sentenceId, setSentenceId] = useState<number | null>(null);
   const [isPunctuation, setIsPunctuation] = useState<boolean | null>(null);
   const [isStopword, setIsStopword] = useState<boolean | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [selectedToken, setSelectedToken] = useState<TokenDetailResponse | null>(null);
+  const [selectedToken, setSelectedToken] =
+    useState<TokenDetailResponse | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -80,7 +75,17 @@ export default function TokensPage() {
     } finally {
       setLoading(false);
     }
-  }, [skip, limit, docId, pos, searchWord, searchLemma, sentenceId, isPunctuation, isStopword]);
+  }, [
+    skip,
+    limit,
+    docId,
+    pos,
+    searchWord,
+    searchLemma,
+    sentenceId,
+    isPunctuation,
+    isStopword,
+  ]);
 
   useEffect(() => {
     fetchTokens();
@@ -121,8 +126,14 @@ export default function TokensPage() {
     setSkip(0);
   };
 
-  const hasActiveFilters = docId || pos || searchWord || searchLemma || 
-                          sentenceId || isPunctuation !== null || isStopword !== null;
+  const hasActiveFilters =
+    docId ||
+    pos ||
+    searchWord ||
+    searchLemma ||
+    sentenceId ||
+    isPunctuation !== null ||
+    isStopword !== null;
 
   const columns: ColumnDef<TokenResponse>[] = [
     {
@@ -148,9 +159,14 @@ export default function TokensPage() {
       cell: ({ row }) => {
         const posValue = row.original.pos;
         if (!posValue) return "-";
-        const tag = POS_TAGS.find(t => t.value === posValue);
+        const tag = POS_TAGS.find((t) => t.value === posValue);
         return tag?.label || posValue;
       },
+    },
+    {
+      accessorKey: "entity_description",
+      header: "Описание сущности",
+      size: 60,
     },
     {
       id: "flags",
@@ -158,12 +174,18 @@ export default function TokensPage() {
       cell: ({ row }) => (
         <div className="flex gap-1">
           {row.original.is_punctuation && (
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900">
+            <Badge
+              variant="outline"
+              className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900"
+            >
               Punct
             </Badge>
           )}
           {row.original.is_stopword && (
-            <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900">
+            <Badge
+              variant="outline"
+              className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900"
+            >
               Stop
             </Badge>
           )}
@@ -208,7 +230,9 @@ export default function TokensPage() {
                 min="1"
                 placeholder="Например: 1"
                 value={docId ?? ""}
-                onChange={(e) => setDocId(e.target.value ? parseInt(e.target.value) : null)}
+                onChange={(e) =>
+                  setDocId(e.target.value ? parseInt(e.target.value) : null)
+                }
               />
             </div>
 
@@ -218,7 +242,9 @@ export default function TokensPage() {
               </label>
               <Select
                 value={pos || "all"}
-                onValueChange={(value) => setPos(value === "all" ? null : value)}
+                onValueChange={(value) =>
+                  setPos(value === "all" ? null : value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Все части речи" />
@@ -254,7 +280,9 @@ export default function TokensPage() {
             className="text-muted-foreground hover:text-foreground"
           >
             <Filter className="h-4 w-4 mr-2" />
-            {showAdvancedFilters ? "Скрыть расширенные фильтры" : "Показать расширенные фильтры"}
+            {showAdvancedFilters
+              ? "Скрыть расширенные фильтры"
+              : "Показать расширенные фильтры"}
           </Button>
 
           {showAdvancedFilters && (
@@ -276,21 +304,25 @@ export default function TokensPage() {
                   <Checkbox
                     id="punctuation"
                     checked={isPunctuation === true}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setIsPunctuation(checked ? true : null)
                     }
                   />
-                  <Label htmlFor="punctuation" className="text-foreground">Только пунктуация</Label>
+                  <Label htmlFor="punctuation" className="text-foreground">
+                    Только пунктуация
+                  </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="stopword"
                     checked={isStopword === true}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setIsStopword(checked ? true : null)
                     }
                   />
-                  <Label htmlFor="stopword" className="text-foreground">Только стоп-слова</Label>
+                  <Label htmlFor="stopword" className="text-foreground">
+                    Только стоп-слова
+                  </Label>
                 </div>
               </div>
             </div>
