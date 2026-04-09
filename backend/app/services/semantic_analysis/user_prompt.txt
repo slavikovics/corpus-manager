@@ -1,0 +1,118 @@
+Analyze the sentence according to the system rules.
+
+--------------------------------
+IMPORTANT:
+- Prefer CAUSE over counterpart when something produces an effect
+- Distinguish cause vs motivation carefully
+- Use counterpart ONLY for interaction or comparison
+--------------------------------
+
+Examples:
+
+=== EXAMPLE 1 (multi-cause structure) ===
+Sentence: "These concepts, combined with trial and error, created the system"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "these concepts",
+    "counterpart": null,
+    "head": null,
+    "object": "the system",
+    "content": null,
+    "addressee": null,
+    "recipient": null,
+    "mediator": null,
+    "source": null,
+    "location": null,
+    "starting_point": null,
+    "end_point": null,
+    "route": null,
+    "medium": null,
+    "instrument": null,
+    "manner": null,
+    "condition": null,
+    "motivation": null,
+    "cause": "trial and error",
+    "result": null,
+    "purpose": null,
+    "aspect": null,
+    "quantity": null,
+    "duration": null,
+    "time": null
+  },
+  "valency_model": {
+    "verb": "create",
+    "mandatory": ["subject", "object"],
+    "optional": ["cause"],
+    "separable": true,
+    "syntactic_voice": "active"
+  },
+  "lexical_functions": [
+    {"function": "Caus", "marker": "created", "target": "system", "description": "causative creation"}
+  ],
+  "deep_syntactic_structure": {
+    "predicate": "create",
+    "arguments": {
+      "subject": "concepts",
+      "object": "system",
+      "cause": "trial and error"
+    },
+    "syntactic_realization": null
+  },
+  "semantic_agreement": {
+    "consistent": true,
+    "violations": [],
+    "notes": "multiple causal factors produce the system"
+  }
+}
+
+=== EXAMPLE 2 (cause vs motivation) ===
+Sentence: "He left because of the storm out of fear"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "He",
+    "counterpart": null,
+    "head": null,
+    "object": null,
+    "content": null,
+    "addressee": null,
+    "recipient": null,
+    "mediator": null,
+    "source": null,
+    "location": null,
+    "starting_point": null,
+    "end_point": null,
+    "route": null,
+    "medium": null,
+    "instrument": null,
+    "manner": null,
+    "condition": null,
+    "motivation": "out of fear",
+    "cause": "because of the storm",
+    "result": null,
+    "purpose": null,
+    "aspect": null,
+    "quantity": null,
+    "duration": null,
+    "time": null
+  },
+  ...
+}
+
+=== EXAMPLE 3 (DO NOT misuse counterpart) ===
+Sentence: "The discovery resulted from years of research"
+Analysis:
+{
+  "semantic_valences": {
+    "subject": "the discovery",
+    "counterpart": null,
+    "object": null,
+    "cause": "years of research",
+    ...
+  }
+}
+
+--------------------------------
+
+NOW ANALYZE THE FOLLOWING SENTENCE:
