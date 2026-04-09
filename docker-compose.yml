@@ -14,7 +14,11 @@ services:
     networks:
       - corpus-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U corpus -d corpus_db || pg_isready -U corpus -d postgres"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U corpus -d corpus_db || pg_isready -U corpus -d postgres",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,7 +43,13 @@ services:
     networks:
       - corpus-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -105,6 +115,9 @@ services:
     environment:
       - VITE_API_URL=http://localhost:8000
       - VITE_WS_URL=ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /node_modules
     ports:
       - "5173:5173"
     networks:

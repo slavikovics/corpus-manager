@@ -12,40 +12,44 @@ import { SearchBar } from "app/components/shared/SearchBar";
 import { SentenceDetailDialog } from "app/components/sentences/SentenceDetailDialog";
 import { sentencesApi } from "app/api/sentences";
 import type { SentenceResponse, SentenceDetailResponse } from "app/api/types";
+import { Brain } from "lucide-react";
+import { SemanticAnalysisDialog } from "app/components/sentences/SemanticAnalysisDialog";
+import { semanticApi } from "app/api/semantics";
+import type { SemanticAnalysisResponse } from "app/api/semanticTypes";
 
 export default function SentencesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  
+
   const [sentences, setSentences] = useState<SentenceResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  
-  
+
   const [skip, setSkip] = useState(0);
   const [limit, setLimit] = useState(50);
-  
-  
+
   const [docId, setDocId] = useState<number | null>(() => {
-    const param = searchParams.get('doc_id');
+    const param = searchParams.get("doc_id");
     return param ? parseInt(param) : null;
   });
   const [searchText, setSearchText] = useState("");
   const [minTokens, setMinTokens] = useState<number | null>(null);
   const [maxTokens, setMaxTokens] = useState<number | null>(null);
-  
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
-  
-  const [selectedSentence, setSelectedSentence] = useState<SentenceDetailResponse | null>(null);
+
+  const [selectedSentence, setSelectedSentence] =
+    useState<SentenceDetailResponse | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  
+  const [semanticAnalysis, setSemanticAnalysis] =
+    useState<SemanticAnalysisResponse | null>(null);
+  const [semanticDialogOpen, setSemanticDialogOpen] = useState(false);
+  const [semanticLoading, setSemanticLoading] = useState(false);
+  const [semanticSentenceText, setSemanticSentenceText] = useState<string>("");
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  
   const fetchSentences = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -77,7 +81,6 @@ export default function SentencesPage() {
     fetchSentences();
   }, [fetchSentences]);
 
-  
   const handleViewDetails = async (doc_id: number, sentence_id: number) => {
     setDetailLoading(true);
     try {
@@ -96,7 +99,30 @@ export default function SentencesPage() {
     }
   };
 
-  
+  const handleSemanticAnalysis = async (
+    doc_id: number,
+    sentence_id: number,
+    text: string,
+  ) => {
+    setSemanticSentenceText(text);
+    setSemanticAnalysis(null);
+    setSemanticDialogOpen(true);
+    setSemanticLoading(true);
+    try {
+      const result = await semanticApi.analyzeSentence(doc_id, sentence_id, {
+        sentenceText: text,
+      });
+      setSemanticAnalysis(result);
+    } catch {
+      toast.error("Ошибка анализа", {
+        description: "Не удалось выполнить семантический анализ предложения",
+      });
+      setSemanticDialogOpen(false);
+    } finally {
+      setSemanticLoading(false);
+    }
+  };
+
   const resetFilters = () => {
     setDocId(null);
     setSearchText("");
@@ -105,7 +131,6 @@ export default function SentencesPage() {
     setSkip(0);
   };
 
-  
   const handlePageChange = (page: number) => {
     setSkip((page - 1) * limit);
   };
@@ -115,18 +140,14 @@ export default function SentencesPage() {
     setSkip(0);
   };
 
-  
   const hasActiveFilters = docId || searchText || minTokens || maxTokens;
 
-  
   const columns: ColumnDef<SentenceResponse>[] = [
     {
       accessorKey: "doc_id",
       header: "Документ",
       size: 80,
-      cell: ({ row }) => (
-        <Badge variant="outline">{row.original.doc_id}</Badge>
-      ),
+      cell: ({ row }) => <Badge variant="outline">{row.original.doc_id}</Badge>,
     },
     {
       accessorKey: "sentence_id",
@@ -160,7 +181,9 @@ export default function SentencesPage() {
         return doc ? (
           <div className="text-sm">
             <div className="font-medium">{doc.title}</div>
-            <div className="text-xs text-muted-foreground">{doc.author || 'Автор неизвестен'}</div>
+            <div className="text-xs text-muted-foreground">
+              {doc.author || "Автор неизвестен"}
+            </div>
           </div>
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -170,18 +193,36 @@ export default function SentencesPage() {
     {
       id: "actions",
       header: "Действия",
-      size: 80,
+      size: 100,
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleViewDetails(row.original.doc_id, row.original.sentence_id);
-          }}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Синтаксический разбор"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails(row.original.doc_id, row.original.sentence_id);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Семантический анализ"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSemanticAnalysis(
+                row.original.doc_id,
+                row.original.sentence_id,
+                row.original.text,
+              );
+            }}
+          >
+            <Brain className="h-4 w-4 text-violet-500" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -204,7 +245,9 @@ export default function SentencesPage() {
                 min="1"
                 placeholder="Например: 1"
                 value={docId ?? ""}
-                onChange={(e) => setDocId(e.target.value ? parseInt(e.target.value) : null)}
+                onChange={(e) =>
+                  setDocId(e.target.value ? parseInt(e.target.value) : null)
+                }
               />
             </div>
             <div>
@@ -226,7 +269,9 @@ export default function SentencesPage() {
             className="text-gray-500"
           >
             <Filter className="h-4 w-4 mr-2" />
-            {showAdvancedFilters ? "Скрыть расширенные фильтры" : "Показать расширенные фильтры"}
+            {showAdvancedFilters
+              ? "Скрыть расширенные фильтры"
+              : "Показать расширенные фильтры"}
           </Button>
 
           {showAdvancedFilters && (
@@ -241,7 +286,11 @@ export default function SentencesPage() {
                   min="1"
                   placeholder="Например: 5"
                   value={minTokens ?? ""}
-                  onChange={(e) => setMinTokens(e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={(e) =>
+                    setMinTokens(
+                      e.target.value ? parseInt(e.target.value) : null,
+                    )
+                  }
                 />
               </div>
 
@@ -254,7 +303,11 @@ export default function SentencesPage() {
                   min="1"
                   placeholder="Например: 20"
                   value={maxTokens ?? ""}
-                  onChange={(e) => setMaxTokens(e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={(e) =>
+                    setMaxTokens(
+                      e.target.value ? parseInt(e.target.value) : null,
+                    )
+                  }
                 />
               </div>
             </div>
@@ -296,6 +349,14 @@ export default function SentencesPage() {
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         loading={detailLoading}
+      />
+
+      <SemanticAnalysisDialog
+        open={semanticDialogOpen}
+        onOpenChange={setSemanticDialogOpen}
+        analysis={semanticAnalysis}
+        loading={semanticLoading}
+        sentenceText={semanticSentenceText}
       />
     </div>
   );
