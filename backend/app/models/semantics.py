@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from typing_extensions import Literal
 
 
@@ -34,38 +34,91 @@ class SemanticValences(BaseModel):
     time: Optional[str] = None
 
 
-class LexicalFunction(BaseModel):
+class ValencySlot(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    function: Optional[str] = None
-    marker: Optional[str] = None
-    target: Optional[str] = None
-    description: Optional[str] = None
+    role: str
+    obligatory: bool
+    morpho_form: Optional[str] = None
 
 
 class ValencyModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     verb: Optional[str] = None
-    mandatory: Optional[List[str]] = None
-    optional: Optional[List[str]] = None
+    slots: Optional[List[ValencySlot]] = None
     separable: Optional[bool] = None
     syntactic_voice: Optional[Literal["active", "passive"]] = None
+
+
+class LexicalFunction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    base: Literal[
+        "Oper1",
+        "Oper2",
+        "Func0",
+        "Func1",
+        "Func2",
+        "Labor12",
+        "Labor21",
+        "Caus",
+        "Liqu",
+        "Perm",
+        "Incep",
+        "Fin",
+        "Cont",
+        "Real1",
+        "Real2",
+        "Perf",
+        "Magn",
+        "Bon",
+        "Anti",
+        "Syn",
+        "Gener",
+        "S0",
+        "A0",
+        "V0",
+        "Manif",
+        "Result",
+    ]
+    modifiers: Optional[List[str]] = None
+    argument: Optional[str] = None
+    value: Optional[str] = None
+    description: Optional[str] = None
+
+
+class DSSArgument(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: str
+    filler: str
 
 
 class DeepSyntacticStructure(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     predicate: Optional[str] = None
-    arguments: Optional[Dict[str, str]] = None
-    syntactic_realization: Optional[str] = None
+    arguments: Optional[List[DSSArgument]] = None
+    syntactic_voice: Optional[Literal["active", "passive"]] = None
+    paraphrase_note: Optional[str] = None
+
+
+class SemanticViolation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    word_a: str
+    word_b: str
+    relation: str
+    shared_components: List[str]
+    verdict: Literal["connected", "disconnected"]
 
 
 class SemanticAgreement(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     consistent: Optional[bool] = None
-    violations: Optional[List[str]] = None
+    violations: Optional[List[SemanticViolation]] = None
     notes: Optional[str] = None
 
 
@@ -73,6 +126,7 @@ class SemanticAnalysisResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sentence: Optional[str] = None
+    interpretation: Optional[str] = None
     semantic_valences: Optional[SemanticValences] = None
     valency_model: Optional[ValencyModel] = None
     lexical_functions: Optional[List[LexicalFunction]] = None
