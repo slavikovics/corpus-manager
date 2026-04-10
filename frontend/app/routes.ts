@@ -43,6 +43,10 @@ export default [
   },
   {
     path: "/export",
-    file: "routes/export.tsx"
-  }
+    file: "routes/export.tsx",
+  },
+  {
+    path: "/sentences/:doc_id/:sentence_id",
+    file: "routes/sentences.$doc_id.$sentence_id.tsx",
+  },
 ] satisfies RouteConfig;
