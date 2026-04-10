@@ -43,7 +43,6 @@ export function SemanticPanel({ analysis }: SemanticPanelProps) {
 
   return (
     <div className="space-y-5">
-      {/* Интерпретация */}
       {analysis.interpretation && (
         <div className="flex items-start gap-3 rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-4 py-3">
           <Zap className="h-4 w-4 text-violet-500 mt-0.5 shrink-0" />
@@ -53,7 +52,6 @@ export function SemanticPanel({ analysis }: SemanticPanelProps) {
         </div>
       )}
 
-      {/* Сводные бейджи */}
       <div className="flex gap-2 flex-wrap">
         <Badge variant="secondary" className="gap-1">
           <BarChart2 className="h-3 w-3" />
@@ -92,7 +90,6 @@ export function SemanticPanel({ analysis }: SemanticPanelProps) {
         )}
       </div>
 
-      {/* Вкладки */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full justify-start h-9 bg-muted/50">
           <TabsTrigger value="valences" className="text-xs gap-1">
@@ -201,8 +198,6 @@ export function SemanticPanel({ analysis }: SemanticPanelProps) {
     </div>
   );
 }
-
-// ── пустое состояние ──────────────────────────────────────────────────────────
 
 export function SemanticPanelEmpty({ message }: { message: string }) {
   return (

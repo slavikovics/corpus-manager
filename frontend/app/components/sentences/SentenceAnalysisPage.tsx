@@ -28,9 +28,6 @@ import {
   SemanticPanelEmpty,
 } from "app/components/sentences/SemanticPanel";
 
-// Маршрут: /sentences/:doc_id/:sentence_id
-// Опциональный параметр ?tab=syntax|semantic
-
 export default function SentenceAnalysisPage() {
   const { doc_id, sentence_id } = useParams<{
     doc_id: string;
@@ -44,8 +41,6 @@ export default function SentenceAnalysisPage() {
 
   const activeTab = searchParams.get("tab") ?? "syntax";
 
-  // ── данные ──────────────────────────────────────────────────────────────────
-
   const [sentence, setSentence] = useState<SentenceDetailResponse | null>(null);
   const [sentenceLoading, setSentenceLoading] = useState(true);
   const [sentenceError, setSentenceError] = useState<Error | null>(null);
@@ -55,8 +50,6 @@ export default function SentenceAnalysisPage() {
   );
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<Error | null>(null);
-
-  // ── загрузка синтаксических данных ──────────────────────────────────────────
 
   useEffect(() => {
     if (!docId || !sentenceId) return;
@@ -74,9 +67,6 @@ export default function SentenceAnalysisPage() {
       .finally(() => setSentenceLoading(false));
   }, [docId, sentenceId]);
 
-  // ── загрузка семантического анализа ─────────────────────────────────────────
-  // Запускается только при переходе на вкладку, и только один раз
-
   useEffect(() => {
     if (activeTab !== "semantic" || analysis || analysisLoading || !sentence)
       return;
@@ -93,8 +83,6 @@ export default function SentenceAnalysisPage() {
       })
       .finally(() => setAnalysisLoading(false));
   }, [activeTab, sentence]);
-
-  // ── повторный запуск анализа ─────────────────────────────────────────────────
 
   const retryAnalysis = () => {
     if (!sentence) return;
@@ -117,8 +105,6 @@ export default function SentenceAnalysisPage() {
     setSearchParams({ tab: value }, { replace: true });
   };
 
-  // ── хлебные крошки ───────────────────────────────────────────────────────────
-
   const breadcrumb = sentence
     ? [
         { label: "Предложения", to: "/sentences" },
@@ -129,8 +115,6 @@ export default function SentenceAnalysisPage() {
         { label: `Предложение #${sentenceId}`, to: null },
       ]
     : null;
-
-  // ── ошибка загрузки предложения ──────────────────────────────────────────────
 
   if (!sentenceLoading && sentenceError) {
     return (
@@ -147,9 +131,7 @@ export default function SentenceAnalysisPage() {
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
-      {/* Шапка */}
       <div className="mb-6 space-y-3">
-        {/* Навигация назад */}
         <Button
           variant="ghost"
           size="sm"
@@ -159,7 +141,6 @@ export default function SentenceAnalysisPage() {
           <ArrowLeft className="h-4 w-4 mr-1.5" />К списку предложений
         </Button>
 
-        {/* Хлебные крошки */}
         {breadcrumb && (
           <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
             {breadcrumb.map((crumb, i) => (
@@ -182,7 +163,6 @@ export default function SentenceAnalysisPage() {
           </nav>
         )}
 
-        {/* Заголовок */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             {sentenceLoading ? (
@@ -200,7 +180,6 @@ export default function SentenceAnalysisPage() {
             ) : null}
           </div>
 
-          {/* Бейджи метаданных */}
           {sentence && (
             <div className="flex gap-2 flex-wrap shrink-0">
               <Badge variant="outline" className="font-mono text-xs">
@@ -217,7 +196,6 @@ export default function SentenceAnalysisPage() {
         </div>
       </div>
 
-      {/* Основные вкладки */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="mb-6 h-10">
           <TabsTrigger value="syntax" className="gap-2 px-5">
@@ -233,7 +211,6 @@ export default function SentenceAnalysisPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Вкладка: Синтаксис */}
         <TabsContent value="syntax">
           {sentenceLoading ? (
             <div className="space-y-6">
@@ -246,7 +223,6 @@ export default function SentenceAnalysisPage() {
           ) : null}
         </TabsContent>
 
-        {/* Вкладка: Семантика */}
         <TabsContent value="semantic">
           {sentenceLoading ? (
             <div className="space-y-4">
