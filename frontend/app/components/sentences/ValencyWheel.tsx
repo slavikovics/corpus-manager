@@ -8,13 +8,13 @@ export function ValencyWheel({ valences }: { valences: SemanticValences }) {
   ][];
   if (filled.length === 0) return null;
 
-  const cx = 200,
-    cy = 170,
-    r = 110;
+  const cx = 400,
+    cy = 340,
+    r = 220;
   const n = filled.length;
 
   return (
-    <svg viewBox="0 0 400 340" className="w-full max-w-85 mx-auto">
+    <svg viewBox="0 0 800 680" className="w-full mx-auto">
       {filled.map(([role], i) => {
         const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
         return (

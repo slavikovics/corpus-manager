@@ -5,17 +5,13 @@ import { Card } from "app/components/ui/card";
 import { Button } from "app/components/ui/button";
 import { Input } from "app/components/ui/input";
 import { Badge } from "app/components/ui/badge";
-import { Eye, Filter, X } from "lucide-react";
+import { Eye, Brain, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "app/components/shared/DataTable";
 import { SearchBar } from "app/components/shared/SearchBar";
-import { SentenceDetailDialog } from "app/components/sentences/SentenceDetailDialog";
 import { sentencesApi } from "app/api/sentences";
-import type { SentenceResponse, SentenceDetailResponse } from "app/api/types";
-import { Brain } from "lucide-react";
-import { SemanticAnalysisDialog } from "app/components/sentences/SemanticAnalysisDialog";
-import { semanticApi } from "app/api/semantics";
-import type { SemanticAnalysisResponse } from "app/api/semanticTypes";
+import type { SentenceResponse } from "app/api/types";
+import { useNavigate } from "react-router";
 
 export default function SentencesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,16 +33,7 @@ export default function SentencesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const [selectedSentence, setSelectedSentence] =
-    useState<SentenceDetailResponse | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-
-  const [semanticAnalysis, setSemanticAnalysis] =
-    useState<SemanticAnalysisResponse | null>(null);
-  const [semanticDialogOpen, setSemanticDialogOpen] = useState(false);
-  const [semanticLoading, setSemanticLoading] = useState(false);
-  const [semanticSentenceText, setSemanticSentenceText] = useState<string>("");
+  const navigate = useNavigate();
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
@@ -80,48 +67,6 @@ export default function SentencesPage() {
   useEffect(() => {
     fetchSentences();
   }, [fetchSentences]);
-
-  const handleViewDetails = async (doc_id: number, sentence_id: number) => {
-    setDetailLoading(true);
-    try {
-      const detail = await sentencesApi.getSentenceDetail(doc_id, sentence_id, {
-        include_context: true,
-        context_size: 5,
-      });
-      setSelectedSentence(detail);
-      setDetailDialogOpen(true);
-    } catch (err) {
-      toast.error("Ошибка загрузки", {
-        description: "Не удалось загрузить детальную информацию о предложении",
-      });
-    } finally {
-      setDetailLoading(false);
-    }
-  };
-
-  const handleSemanticAnalysis = async (
-    doc_id: number,
-    sentence_id: number,
-    text: string,
-  ) => {
-    setSemanticSentenceText(text);
-    setSemanticAnalysis(null);
-    setSemanticDialogOpen(true);
-    setSemanticLoading(true);
-    try {
-      const result = await semanticApi.analyzeSentence(doc_id, sentence_id, {
-        sentenceText: text,
-      });
-      setSemanticAnalysis(result);
-    } catch {
-      toast.error("Ошибка анализа", {
-        description: "Не удалось выполнить семантический анализ предложения",
-      });
-      setSemanticDialogOpen(false);
-    } finally {
-      setSemanticLoading(false);
-    }
-  };
 
   const resetFilters = () => {
     setDocId(null);
@@ -193,7 +138,7 @@ export default function SentencesPage() {
     {
       id: "actions",
       header: "Действия",
-      size: 100,
+      size: 120,
       cell: ({ row }) => (
         <div className="flex gap-1">
           <Button
@@ -202,10 +147,12 @@ export default function SentencesPage() {
             title="Синтаксический разбор"
             onClick={(e) => {
               e.stopPropagation();
-              handleViewDetails(row.original.doc_id, row.original.sentence_id);
+              navigate(
+                `/sentences/${row.original.doc_id}/${row.original.sentence_id}?tab=syntax`,
+              );
             }}
           >
-            <Eye className="h-4 w-4" />
+            <Eye className="h-4 w-4 text-blue-900" />
           </Button>
           <Button
             variant="ghost"
@@ -213,14 +160,12 @@ export default function SentencesPage() {
             title="Семантический анализ"
             onClick={(e) => {
               e.stopPropagation();
-              handleSemanticAnalysis(
-                row.original.doc_id,
-                row.original.sentence_id,
-                row.original.text,
+              navigate(
+                `/sentences/${row.original.doc_id}/${row.original.sentence_id}?tab=semantic`,
               );
             }}
           >
-            <Brain className="h-4 w-4 text-violet-500" />
+            <Brain className="h-4 w-4 text-violet-900" />
           </Button>
         </div>
       ),
@@ -342,21 +287,6 @@ export default function SentencesPage() {
         }}
         loading={loading}
         error={error}
-      />
-
-      <SentenceDetailDialog
-        sentence={selectedSentence}
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
-        loading={detailLoading}
-      />
-
-      <SemanticAnalysisDialog
-        open={semanticDialogOpen}
-        onOpenChange={setSemanticDialogOpen}
-        analysis={semanticAnalysis}
-        loading={semanticLoading}
-        sentenceText={semanticSentenceText}
       />
     </div>
   );
